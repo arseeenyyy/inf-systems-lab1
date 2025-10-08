@@ -1,0 +1,2 @@
+.create-form { display: flex; flex-direction: column; gap: 10px; }
+.create-form input, .create-form select { padding: 8px; border: 1px solid #ddd; }

@@ -1,0 +1,2 @@
+.dragon-form { display: flex; flex-direction: column; gap: 10px; min-width: 300px; }
+.dragon-form input, .dragon-form select { padding: 8px; border: 1px solid #ddd; }

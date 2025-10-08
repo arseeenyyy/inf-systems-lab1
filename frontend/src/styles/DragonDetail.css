@@ -1,0 +1,2 @@
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+.detail-actions { display: flex; gap: 10px; justify-content: flex-end; }
