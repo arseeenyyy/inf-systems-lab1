@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class DragonCave {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column(name = "number_of_treasures", nullable = false) 
+    @NotNull
     @Min(1)
     private Long numberOfTreasures; 
 }

@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CoordinatesRequestDto {
-    @NotNull
-    @Max(696)
-    private double x; 
+    @NotNull(message = "X coordinate is required")
+    @Max(value = 696, message = "X coordinate cannot exceed 696")
+    private Double x; 
 
-    @NotNull
-    @Max(366)
-    private double y;
+    @NotNull(message = "Y coordinate is required")
+    @Max(value = 366, message = "Y coordinate cannot exceed 366")
+    private Double y; 
 }

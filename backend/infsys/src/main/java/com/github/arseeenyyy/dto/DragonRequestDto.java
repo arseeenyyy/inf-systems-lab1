@@ -13,23 +13,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor 
 @AllArgsConstructor 
 public class DragonRequestDto {
-    @NotNull
-    @NotBlank
+    @NotBlank(message = "Name is required and cannot be blank")
     private String name;
 
-    @NotNull 
+    @NotNull(message = "Coordinates ID is required")
     private Long coordinatesId;
 
     private Long caveId;
 
     private Long killerId;
 
-    @NotNull
-    @Min(1)
-    private Integer age;
+    @NotNull(message = "Age is required")
+    @Min(value = 1, message = "Age must be at least 1")
+    private Integer age; 
 
-    @Min(1) 
-    private double weight;
+    @Min(value = 1, message = "Weight must be at least 1") 
+    private Double weight; 
 
     private Color color;
 

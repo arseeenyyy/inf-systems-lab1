@@ -14,16 +14,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PersonRequestDto {
-    @NotNull
-    @NotBlank
+    @NotNull(message = "name cannot be null")
+    @NotBlank(message = "name cannot be blank")
     private String name;   
 
-    @NotNull
+    @NotNull(message = "eye color cannot be null")
     private Color eyeColor;
     private Color hairColor;
     private Long locationId;
 
-    @Min(1) 
+    @Min(value = 1, message = "min height value = 1") 
+    @NotNull(message = "height cannot be null")
     private int height;
     private Country nationality;
 }
