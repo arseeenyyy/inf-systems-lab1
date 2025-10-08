@@ -18,5 +18,4 @@ public class PersonResponseDto {
     private LocationResponseDto location;
     private int height;
     private Country nationality;
-    private String teamName; 
 }
