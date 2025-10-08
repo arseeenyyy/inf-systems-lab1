@@ -1,8 +1,8 @@
 package com.github.arseeenyyy.controller;
 
-import com.github.arseeenyyy.dto.DragonCaveRequestDto;
-import com.github.arseeenyyy.dto.DragonCaveResponseDto;
-import com.github.arseeenyyy.service.DragonCaveService;
+import com.github.arseeenyyy.dto.DragonHeadRequestDto;
+import com.github.arseeenyyy.dto.DragonHeadResponseDto;
+import com.github.arseeenyyy.service.DragonHeadService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -10,46 +10,46 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
-@Path("/caves")
+@Path("/heads")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class DragonCaveController {
+public class DragonHeadController {
     
     @Inject
-    private DragonCaveService caveService;
+    private DragonHeadService headService;
     
     @GET
-    public List<DragonCaveResponseDto> getAll() {
-        return caveService.getAll();
+    public List<DragonHeadResponseDto> getAll() {
+        return headService.getAll();
     }
     
     @GET
     @Path("/{id}")
-    public DragonCaveResponseDto getById(@PathParam("id") Long id) {
-        return caveService.getById(id);
+    public DragonHeadResponseDto getById(@PathParam("id") Long id) {
+        return headService.getById(id);
     }
     
     @POST
-    public Response create(@Valid DragonCaveRequestDto requestDto) {
+    public Response create(@Valid DragonHeadRequestDto requestDto) {
         try {
-            DragonCaveResponseDto response = caveService.create(requestDto);
+            DragonHeadResponseDto response = headService.create(requestDto);
             return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Error creating dragon cave: " + e.getMessage())
+                    .entity("Error creating dragon head: " + e.getMessage())
                     .build();
         }
     }
     
     @PUT
     @Path("/{id}")
-    public Response update(@PathParam("id") Long id, DragonCaveRequestDto requestDto) {
+    public Response update(@PathParam("id") Long id, DragonHeadRequestDto requestDto) {
         try {
-            DragonCaveResponseDto response = caveService.update(id, requestDto);
+            DragonHeadResponseDto response = headService.update(id, requestDto);
             return Response.ok(response).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Error updating dragon cave: " + e.getMessage())
+                    .entity("Error updating dragon head: " + e.getMessage())
                     .build();
         }
     }
@@ -58,11 +58,11 @@ public class DragonCaveController {
     @Path("/{id}")
     public Response delete(@PathParam("id") Long id) {
         try {
-            caveService.delete(id);
+            headService.delete(id);
             return Response.noContent().build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Error deleting dragon cave: " + e.getMessage())
+                    .entity("Error deleting dragon head: " + e.getMessage())
                     .build();
         }
     }
