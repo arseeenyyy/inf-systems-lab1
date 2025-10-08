@@ -1,5 +1,7 @@
 package com.github.arseeenyyy.controller;
 
+import java.util.List;
+
 import com.github.arseeenyyy.dto.CoordinatesRequestDto;
 import com.github.arseeenyyy.dto.CoordinatesResponseDto;
 import com.github.arseeenyyy.service.CoordinatesService;
@@ -17,6 +19,16 @@ public class CoordinatesController {
     @Inject
     private CoordinatesService coordinatesService;
     
+    @GET
+    public List<CoordinatesResponseDto> getAll() {
+        return coordinatesService.getAll();
+    }
+    @GET
+    @Path("/{id}")
+    public CoordinatesResponseDto getById(@PathParam("id") Long id) {
+        return coordinatesService.getById(id);
+    }
+
     @POST
     public Response create(@Valid CoordinatesRequestDto requestDto) {
         try {
@@ -28,7 +40,7 @@ public class CoordinatesController {
                     .build();
         }
     }
-    
+
 
 
     @GET
