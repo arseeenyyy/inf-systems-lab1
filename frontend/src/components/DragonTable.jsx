@@ -1,77 +1,63 @@
-import React, { useState, useMemo } from 'react';
-import '../styles/DragonDetail.css'
+import React from 'react';
+import '../styles/table.css';
 
-const DragonTable = ({ dragons, onSelect, filter, sortField }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+const DragonTable = ({ dragons }) => {
+  const formatCoordinates = (coordinates) => {
+    if (!coordinates) return '-';
+    return `(${coordinates.x};${coordinates.y})`;
+  };
 
-  const filteredAndSorted = useMemo(() => {
-    let result = dragons.filter(d => 
-      !filter || d.name.includes(filter) || d.color?.includes(filter)
-    );
-    
-    if (sortField) {
-      result.sort((a, b) => (a[sortField] > b[sortField] ? 1 : -1));
-    }
-    
-    return result;
-  }, [dragons, filter, sortField]);
+  const formatCave = (cave) => {
+    if (!cave) return '-';
+    return cave.numberOfTreasures;
+  };
 
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredAndSorted.slice(start, start + pageSize);
-  }, [filteredAndSorted, currentPage]);
+  const formatKiller = (killer) => {
+    if (!killer) return '-';
+    return killer.name;
+  };
 
-  const totalPages = Math.ceil(filteredAndSorted.length / pageSize);
+  const formatHead = (head) => {
+    if (!head) return '-';
+    return `(${head.size};${head.eyesCount || 'null'})`;
+  };
 
   return (
     <div className="table-container">
-      <table className="dragon-table">
+      <table className="data-table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
+            <th>Coordinates</th>
+            <th>Creation Date</th>
+            <th>Cave</th>
+            <th>Killer</th>
             <th>Age</th>
             <th>Weight</th>
             <th>Color</th>
             <th>Character</th>
-            <th>Coordinates ID</th>
-            <th>Cave ID</th>
-            <th>Killer ID</th>
-            <th>Head ID</th>
+            <th>Head</th>
           </tr>
         </thead>
         <tbody>
-          {paginated.map(dragon => (
-            <tr key={dragon.id} onClick={() => onSelect(dragon)}>
+          {dragons.map(dragon => (
+            <tr key={dragon.id}>
               <td>{dragon.id}</td>
               <td>{dragon.name}</td>
+              <td>{formatCoordinates(dragon.coordinates)}</td>
+              <td>{dragon.creationDate}</td>
+              <td>{formatCave(dragon.cave)}</td>
+              <td>{formatKiller(dragon.killer)}</td>
               <td>{dragon.age}</td>
               <td>{dragon.weight}</td>
-              <td>{dragon.color}</td>
-              <td>{dragon.character}</td>
-              <td>{dragon.coordinates?.id}</td>
-              <td>{dragon.cave?.id}</td>
-              <td>{dragon.killer?.id}</td>
-              <td>{dragon.head?.id}</td>
+              <td>{dragon.color || '-'}</td>
+              <td>{dragon.character || '-'}</td>
+              <td>{formatHead(dragon.head)}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      
-      {totalPages > 1 && (
-        <div className="pagination">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={currentPage === i + 1 ? 'active' : ''}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

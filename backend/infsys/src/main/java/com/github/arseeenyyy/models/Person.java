@@ -42,7 +42,7 @@ public class Person {
     @Column(name = "hair_color", nullable = false) 
     private Color hairColor; //Поле может быть null
 
-    @ManyToOne(fetch = FetchType.LAZY) 
+    @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "location_id") 
     private Location location; //Поле может быть null
     
