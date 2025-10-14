@@ -2,6 +2,8 @@ package com.github.arseeenyyy.models;
 
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,7 +41,7 @@ public class Dragon {
     @NotBlank
     private String name; //Поле не может быть null, Строка не может быть пустой
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "coordinates_id", nullable = false) 
     @NotNull
     private Coordinates coordinates; //Поле не может быть null
@@ -48,12 +50,14 @@ public class Dragon {
     @Column(name = "creation_date", nullable = false)
     private java.time.LocalDate creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "cave_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DragonCave cave; //Поле может быть null
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "killer_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Person killer; //Поле может быть null
 
     @Column(nullable = false)
@@ -73,8 +77,9 @@ public class Dragon {
     @Column(name = "dragon_character") 
     private DragonCharacter character; //Поле может быть null
     
-    @ManyToOne(fetch = FetchType.LAZY) 
+    @ManyToOne
     @JoinColumn(name = "head_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DragonHead head;
 
     @Builder

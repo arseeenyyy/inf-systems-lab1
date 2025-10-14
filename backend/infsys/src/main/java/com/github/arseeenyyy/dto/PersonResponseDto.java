@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor 
 @AllArgsConstructor
 public class PersonResponseDto {
-    private long id;
+    private Long id;
     private String name;
     private Color eyeColor;
     private Color hairColor;

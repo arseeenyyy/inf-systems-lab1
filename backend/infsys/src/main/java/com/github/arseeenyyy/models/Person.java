@@ -52,4 +52,8 @@ public class Person {
     
     @Enumerated(EnumType.STRING) 
     private Country nationality; //Поле может быть null
+
+    // @ManyToOne(fetch = FetchType.LAZY) 
+    // @JoinColumn(name = "team_id")
+    // private Team team;
 }

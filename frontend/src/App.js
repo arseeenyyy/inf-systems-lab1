@@ -39,7 +39,6 @@ function App() {
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
 
-      // Специальная обработка для связанных объектов
       switch (sortConfig.key) {
         case 'coordinates':
           aValue = a.coordinates ? a.coordinates.x + a.coordinates.y : 0;
@@ -58,15 +57,12 @@ function App() {
           bValue = b.head ? b.head.size : 0;
           break;
         default:
-          // Для обычных полей используем как есть
           break;
       }
 
-      // Обработка null/undefined значений
       if (aValue == null) aValue = '';
       if (bValue == null) bValue = '';
 
-      // Сравнение значений
       if (aValue < bValue) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
@@ -98,7 +94,7 @@ function App() {
   const deleteDragon = async (id) => {
     try {
       await apiClient.deleteDragon(id);
-      setDragons(prev => prev.filter(dragon => dragon.id !== id));
+      await loadDragons();
       setSelectedDragon(null);
     } catch (error) {
       console.error('Failed to delete dragon:', error);
@@ -115,7 +111,6 @@ function App() {
   };
 
   const handleRelatedCreated = () => {
-    // Просто закрываем модалку
   };
 
   return (

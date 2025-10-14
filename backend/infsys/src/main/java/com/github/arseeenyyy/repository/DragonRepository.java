@@ -59,4 +59,24 @@ public class DragonRepository {
             .setParameter("substring", substring + "%")
             .getResultList();
     }
+        public List<Dragon> findByCaveId(Long caveId) {
+        return entityManager.createQuery(
+            "SELECT d FROM Dragon d WHERE d.cave.id = :caveId", Dragon.class)
+            .setParameter("caveId", caveId)
+            .getResultList();
+    }
+    
+    public List<Dragon> findByKillerId(Long killerId) {
+        return entityManager.createQuery(
+            "SELECT d FROM Dragon d WHERE d.killer.id = :killerId", Dragon.class)
+            .setParameter("killerId", killerId)
+            .getResultList();
+    }
+    
+    public List<Dragon> findByHeadId(Long headId) {
+        return entityManager.createQuery(
+            "SELECT d FROM Dragon d WHERE d.head.id = :headId", Dragon.class)
+            .setParameter("headId", headId)
+            .getResultList();
+    }
 }

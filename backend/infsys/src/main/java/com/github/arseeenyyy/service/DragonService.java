@@ -73,9 +73,38 @@ public class DragonService {
         return DragonMapper.toResponseDto(dragon);
     }
     
+    // @Transactional
+    // public void delete(Long id) {
+    //     dragonRepository.delete(id);
+    // }
+
     @Transactional
     public void delete(Long id) {
+        Dragon dragon = dragonRepository.findById(id);
+        if (dragon == null) {
+            throw new NotFoundException("Dragon not found with id: " + id);
+        }
+        
+        DragonCave cave = dragon.getCave();
+        Person killer = dragon.getKiller();
+        DragonHead head = dragon.getHead();
+        
         dragonRepository.delete(id);
+        
+        if (cave != null) {
+            dragonCaveRepository.delete(cave.getId());
+        }
+        
+        if (head != null) {
+            dragonHeadRepository.delete(head.getId());
+        }
+        
+        if (killer != null) {
+            List<Dragon> dragonsUsingKiller = dragonRepository.findByKillerId(killer.getId());
+            if (dragonsUsingKiller.isEmpty()) {
+                personRepository.delete(killer.getId());
+            }
+        }
     }
     
     @Transactional

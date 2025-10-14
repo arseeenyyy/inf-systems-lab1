@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DragonCaveResponseDto {
-    private long id;
+    private Long id;
     private long numberOfTreasures;
 }

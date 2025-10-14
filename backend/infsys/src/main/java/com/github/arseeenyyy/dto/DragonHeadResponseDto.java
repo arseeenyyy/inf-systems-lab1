@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor 
 public class DragonHeadResponseDto {
-    private long id;
+    private Long id;
     private int size;
     private Integer eyesCount;
 }
