@@ -3,6 +3,7 @@ import { apiClient } from './api/client';
 import DragonTable from './components/DragonTable';
 import DragonForm from './components/DragonForm';
 import DragonDetails from './components/DragonDetails';
+import EntityCreator from './components/EntityCreator';
 import './styles/main.css';
 
 function App() {
@@ -58,14 +59,17 @@ function App() {
     setEditingDragon(dragon);
   };
 
-  
+  const handleEntityCreated = (entityType, createdEntity) => {
+    console.log(`Created ${entityType}:`, createdEntity);
+  };
+
   return (
     <div className="container">
       <div className="header">
       </div>
 
       <div className="layout">
-        <div className="sidebar" style={{ width: '520px' }}> {/* Увеличил ширину сайдбара */}
+        <div className="sidebar" style={{ width: '400px' }}>
           <div className="panel">
             <div className="panel-title">[create/update_dragon]</div>
             <DragonForm 
@@ -74,7 +78,7 @@ function App() {
               onCancel={() => setEditingDragon(null)}
             />
           </div>
-
+          <EntityCreator onEntityCreated={handleEntityCreated} />
           <div className="panel">
             <div className="panel-title">[selected_dragon_data]</div>
             <DragonDetails 
