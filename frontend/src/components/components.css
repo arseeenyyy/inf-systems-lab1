@@ -1,0 +1,173 @@
+/* Dragon Table Styles */
+.dragon-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.dragon-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dragon-table th {
+  background-color: #34495e;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.dragon-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.dragon-table-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dragon-table-row:hover {
+  background-color: #f8f9fa;
+}
+
+.dragon-table-row.selected {
+  background-color: #e3f2fd;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.sortable-header:hover {
+  background-color: #2c3e50;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+/* Dragon Form Styles */
+.dragon-form-container {
+  min-width: 400px;
+}
+
+.dragon-form-title {
+  margin-bottom: 20px;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.dragon-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.submit-button {
+  margin-top: 10px;
+}
+
+.submit-button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+/* Dragon Details Styles */
+.dragon-details-container {
+  min-width: 400px;
+}
+
+.no-selection-message {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.dragon-details-title {
+  margin-bottom: 20px;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.dragon-details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.detail-value {
+  color: #34495e;
+  font-size: 14px;
+}
+
+.detail-value pre {
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
