@@ -58,17 +58,16 @@ function App() {
     setEditingDragon(dragon);
   };
 
+  
   return (
     <div className="container">
       <div className="header">
-        <div className="title"></div>
-        <div className="subtitle"></div>
       </div>
 
       <div className="layout">
-        <div className="sidebar">
+        <div className="sidebar" style={{ width: '520px' }}> {/* Увеличил ширину сайдбара */}
           <div className="panel">
-            <div className="panel-title">[CREATE/UPDATE_DRAGON]</div>
+            <div className="panel-title">[create/update_dragon]</div>
             <DragonForm 
               dragon={editingDragon}
               onSubmit={editingDragon ? handleUpdateDragon : handleCreateDragon}
@@ -77,7 +76,7 @@ function App() {
           </div>
 
           <div className="panel">
-            <div className="panel-title">[SELECTED_DRAGON_DATA]</div>
+            <div className="panel-title">[selected_dragon_data]</div>
             <DragonDetails 
               dragon={selectedDragon}
               onEdit={handleEditDragon}
@@ -88,7 +87,7 @@ function App() {
 
         <div className="main">
           <div className="panel">
-            <div className="panel-title">[DRAGONS_TABLE]</div>
+            <div className="panel-title">[dragons_table]</div>
             <DragonTable 
               dragons={dragons}
               selectedDragon={selectedDragon}

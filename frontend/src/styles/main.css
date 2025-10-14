@@ -90,6 +90,7 @@ body {
   font-weight: bold;
   cursor: pointer;
   user-select: none;
+  white-space: nowrap; 
 }
 
 .table th:hover {
@@ -151,8 +152,6 @@ body {
   border-color: #00ffff;
 }
 
-/* Buttons */
-/* Buttons */
 .btn {
   background: transparent;
   color: #8C26FC;

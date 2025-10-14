@@ -67,14 +67,29 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Валидация
+    const age = parseInt(formData.age);
+    const weight = parseFloat(formData.weight);
+    
+    if (age <= 0) {
+      alert('Age must be greater than 0');
+      return;
+    }
+    
+    if (weight <= 0) {
+      alert('Weight must be greater than 0');
+      return;
+    }
+
     const data = {
       ...formData,
       coordinatesId: formData.coordinatesId ? parseInt(formData.coordinatesId) : null,
       caveId: formData.caveId ? parseInt(formData.caveId) : null,
       killerId: formData.killerId ? parseInt(formData.killerId) : null,
       headId: formData.headId ? parseInt(formData.headId) : null,
-      age: parseInt(formData.age),
-      weight: parseFloat(formData.weight)
+      age: age,
+      weight: weight
     };
     onSubmit(data);
   };
@@ -82,7 +97,7 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="form">
       <div className="form-group">
-        <label className="form-label">NAME</label>
+        <label className="form-label">name</label>
         <input
           type="text"
           name="name"
@@ -94,7 +109,7 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
       </div>
 
       <div className="form-group">
-        <label className="form-label">COORDINATES</label>
+        <label className="form-label">coordinates</label>
         <select
           name="coordinatesId"
           value={formData.coordinatesId}
@@ -102,10 +117,10 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
           className="form-select"
           required
         >
-          <option value="">SELECT_COORDINATES</option>
+          <option value=""></option>
           {relatedData.coordinates.map(coord => (
             <option key={coord.id} value={coord.id}>
-              COORD_{coord.id}
+              ({coord.x};{coord.y})
             </option>
           ))}
         </select>
@@ -113,28 +128,27 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
 
       <div className="form-row">
         <div className="form-group">
-          <label className="form-label">AGE</label>
+          <label className="form-label">age</label>
           <input
-            type="number"
+            type="text"
             name="age"
             value={formData.age}
             onChange={handleChange}
             className="form-input"
-            min="1"
+            placeholder="> 0"
             required
           />
         </div>
 
         <div className="form-group">
-          <label className="form-label">WEIGHT</label>
+          <label className="form-label">weight</label>
           <input
-            type="number"
+            type="text"
             name="weight"
             value={formData.weight}
             onChange={handleChange}
             className="form-input"
-            min="0.1"
-            step="0.1"
+            placeholder="> 0"
             required
           />
         </div>
@@ -142,31 +156,31 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
 
       <div className="form-row">
         <div className="form-group">
-          <label className="form-label">CAVE</label>
+          <label className="form-label">cave</label>
           <select
             name="caveId"
             value={formData.caveId}
             onChange={handleChange}
             className="form-select"
           >
-            <option value="">NO_CAVE</option>
+            <option value=""></option>
             {relatedData.caves.map(cave => (
               <option key={cave.id} value={cave.id}>
-                CAVE_{cave.id}
+                treasures:{cave.numberOfTreasures || '?'}
               </option>
             ))}
           </select>
         </div>
 
         <div className="form-group">
-          <label className="form-label">KILLER</label>
+          <label className="form-label">killer</label>
           <select
             name="killerId"
             value={formData.killerId}
             onChange={handleChange}
             className="form-select"
           >
-            <option value="">NO_KILLER</option>
+            <option value=""></option>
             {relatedData.persons.map(person => (
               <option key={person.id} value={person.id}>
                 {person.name}
@@ -178,55 +192,56 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
 
       <div className="form-row">
         <div className="form-group">
-          <label className="form-label">HEAD</label>
+          <label className="form-label">head</label>
           <select
             name="headId"
             value={formData.headId}
             onChange={handleChange}
             className="form-select"
           >
-            <option value="">NO_HEAD</option>
+            <option value=""></option>
             {relatedData.heads.map(head => (
               <option key={head.id} value={head.id}>
-                HEAD_{head.id}
+                ({head.size};{head.eyesCount || '?'})
               </option>
             ))}
           </select>
         </div>
 
         <div className="form-group">
-          <label className="form-label">COLOR</label>
+          <label className="form-label">color</label>
           <select
             name="color"
             value={formData.color}
             onChange={handleChange}
             className="form-select"
           >
-            <option value="">NO_COLOR</option>
-            <option value="GREEN">GREEN</option>
-            <option value="BLUE">BLUE</option>
-            <option value="YELLOW">YELLOW</option>
+            <option value=""></option>
+            <option value="GREEN">green</option>
+            <option value="BLUE">blue</option>
+            <option value="YELLOW">yellow</option>
           </select>
         </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">CHARACTER</label>
+        <label className="form-label">character</label>
         <select
           name="character"
           value={formData.character}
           onChange={handleChange}
           className="form-select"
         >
-          <option value="">NO_CHARACTER</option>
-          <option value="EVIL">EVIL</option>
-          <option value="CHAOTIC">CHAOTIC</option>
-          <option value="CHAOTIC_EVIL">CHAOTIC_EVIL</option>
+          <option value=""></option>
+          <option value="EVIL">evil</option>
+          <option value="CHAOTIC">chaotic</option>
+          <option value="CHAOTIC_EVIL">chaotic_evil</option>
         </select>
       </div>
+      
       <div className="actions">
         <button type="submit" className="btn btn-primary">
-          [create]
+          [{dragon ? 'update' : 'create'}]
         </button>
         {dragon && (
           <button type="button" className="btn" onClick={onCancel}>
@@ -234,7 +249,6 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
           </button>
         )}
       </div>
-
     </form>
   );
 };

@@ -23,10 +23,20 @@ const DragonTable = ({ dragons, selectedDragon, sortConfig, onSelectDragon, onSo
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
-  const formatValue = (value) => {
-    if (value === null || value === undefined) return 'null';
-    if (typeof value === 'object') return value.name || value.id || 'object';
-    return value.toString();
+  const formatCoordinates = (coord) => {
+    if (!coord) return 'null';
+    return `(${coord.x};${coord.y})`;
+  };
+
+  const formatCave = (cave) => {
+    if (!cave) return 'null';
+    return cave.numberOfTreasures ? `t:${cave.numberOfTreasures}` : 'null';
+  };
+
+  const formatHead = (head) => {
+    if (!head) return 'null';
+    const eyes = head.eyesCount !== null ? head.eyesCount : '?';
+    return `(${head.size};${eyes})`;
   };
 
   return (
@@ -34,13 +44,27 @@ const DragonTable = ({ dragons, selectedDragon, sortConfig, onSelectDragon, onSo
       <table className="table">
         <thead>
           <tr>
-            <th onClick={() => handleSort('id')}>ID {getSortIcon('id')}</th>
-            <th onClick={() => handleSort('name')}>NAME {getSortIcon('name')}</th>
-            <th>COORDINATES</th>
-            <th onClick={() => handleSort('age')}>AGE {getSortIcon('age')}</th>
-            <th onClick={() => handleSort('weight')}>WEIGHT {getSortIcon('weight')}</th>
-            <th>COLOR</th>
-            <th>CHARACTER</th>
+            <th onClick={() => handleSort('id')}>
+              id<span className="sort-icon">{getSortIcon('id')}</span>
+            </th>
+            <th onClick={() => handleSort('name')}>
+              name<span className="sort-icon">{getSortIcon('name')}</span>
+            </th>
+            <th>coordinates</th>
+            <th onClick={() => handleSort('creationDate')}>
+              creation<span className="sort-icon">{getSortIcon('creationDate')}</span>
+            </th>
+            <th>cave</th>
+            <th>killer</th>
+            <th onClick={() => handleSort('age')}>
+              age<span className="sort-icon">{getSortIcon('age')}</span>
+            </th>
+            <th onClick={() => handleSort('weight')}>
+              weight<span className="sort-icon">{getSortIcon('weight')}</span>
+            </th>
+            <th>color</th>
+            <th>character</th>
+            <th>head</th>
           </tr>
         </thead>
         <tbody>
@@ -52,17 +76,21 @@ const DragonTable = ({ dragons, selectedDragon, sortConfig, onSelectDragon, onSo
             >
               <td>{dragon.id}</td>
               <td>{dragon.name}</td>
-              <td>{formatValue(dragon.coordinates)}</td>
+              <td>{formatCoordinates(dragon.coordinates)}</td>
+              <td>{dragon.creationDate}</td>
+              <td>{formatCave(dragon.cave)}</td>
+              <td>{dragon.killer?.name || 'null'}</td>
               <td>{dragon.age}</td>
               <td>{dragon.weight}</td>
-              <td>{formatValue(dragon.color)}</td>
-              <td>{formatValue(dragon.character)}</td>
+              <td>{dragon.color || 'null'}</td>
+              <td>{dragon.character || 'null'}</td>
+              <td>{formatHead(dragon.head)}</td>
             </tr>
           ))}
         </tbody>
       </table>
       {dragons.length === 0 && (
-        <div className="no-selection">NO_DRAGONS_FOUND</div>
+        <div className="no-selection">no_dragons_found</div>
       )}
     </div>
   );
