@@ -1,9 +1,7 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.TeamCreateRequestDto;
-import com.github.arseeenyyy.dto.TeamCreateResponseDto;
-import com.github.arseeenyyy.dto.TeamToCaveRequestDto;
-import com.github.arseeenyyy.dto.TeamToCaveResponseDto;
+import com.github.arseeenyyy.dto.*;
+import com.github.arseeenyyy.mapper.PersonMapper;
 import com.github.arseeenyyy.models.Dragon;
 import com.github.arseeenyyy.models.DragonCave;
 import com.github.arseeenyyy.models.Person;
@@ -16,7 +14,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class TeamService {
@@ -44,20 +45,25 @@ public class TeamService {
         Team savedTeam = teamRepository.save(team);
         
         int addedMembers = 0;
+        List<Person> members = new ArrayList<>();
         for (Long personId : requestDto.getPersonsIds()) {
             Person person = personRepository.findById(personId);
             if (person != null) {
                 person.setTeam(savedTeam);
                 personRepository.update(person);
+                members.add(person);
                 addedMembers++;
             }
-        }
+        } 
         
-        return new TeamCreateResponseDto(savedTeam.getId(), addedMembers);
+        List<PersonResponseDto> membersDto = members.stream()
+            .map(p -> PersonMapper.toResponseDto(p)) 
+            .collect(Collectors.toList());
+            
+        return new TeamCreateResponseDto(savedTeam.getId(), addedMembers, membersDto);
     }
-    
-    public List<Team> getAllTeams() {
-        return teamRepository.findAll();
+    public List<TeamDto> getAllTeams() {
+        return teamRepository.findAllWithMembers();
     }
     
     public Team getTeamById(Long id) {
@@ -84,6 +90,40 @@ public class TeamService {
         teamRepository.delete(id);
     }
     
+    // @Transactional
+    // public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto) {
+    //     Team team = teamRepository.findById(requestDto.getTeamId());
+    //     if (team == null) {
+    //         throw new NotFoundException("Team not found with id: " + requestDto.getTeamId());
+    //     }
+        
+    //     DragonCave cave = dragonCaveRepository.findById(requestDto.getCaveId());
+    //     if (cave == null) {
+    //         throw new NotFoundException("Cave not found with id: " + requestDto.getCaveId());
+    //     }
+        
+    //     List<Dragon> dragonsInCave = dragonRepository.findByCaveId(requestDto.getCaveId());
+    //     List<Person> teamMembers = personRepository.findByTeamId(requestDto.getTeamId());
+        
+    //     Long treasures = cave.getNumberOfTreasures();
+    //     int dragonsKilled = 0;
+        
+    //     if (!dragonsInCave.isEmpty() && !teamMembers.isEmpty()) {
+    //         Person randomKiller = teamMembers.get(0); 
+            
+    //         for (Dragon dragon : dragonsInCave) {
+    //             if (dragon.getKiller() == null) { 
+    //                 dragon.setKiller(randomKiller);
+    //                 dragonRepository.update(dragon);
+    //                 dragonsKilled++;
+    //             }
+    //         }
+    //         cave.setNumberOfTreasures(1L);
+    //         dragonCaveRepository.update(cave);            
+    //     }
+        
+    //     return new TeamToCaveResponseDto(treasures, dragonsKilled);
+    // }
     @Transactional
     public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto) {
         Team team = teamRepository.findById(requestDto.getTeamId());
@@ -97,7 +137,6 @@ public class TeamService {
         }
         
         List<Dragon> dragonsInCave = dragonRepository.findByCaveId(requestDto.getCaveId());
-        
         List<Person> teamMembers = personRepository.findByTeamId(requestDto.getTeamId());
         
         Long treasures = cave.getNumberOfTreasures();
@@ -109,17 +148,17 @@ public class TeamService {
             for (Dragon dragon : dragonsInCave) {
                 if (dragon.getKiller() == null) { 
                     dragon.setKiller(randomKiller);
+                    dragon.setCave(null); 
                     dragonRepository.update(dragon);
                     dragonsKilled++;
                 }
             }
-            cave.setNumberOfTreasures(1L);
-            dragonCaveRepository.update(cave);            
+            
+            dragonCaveRepository.delete(requestDto.getCaveId());
         }
         
         return new TeamToCaveResponseDto(treasures, dragonsKilled);
     }
-    
     @Transactional
     public TeamCreateResponseDto addMembersToTeam(Long teamId, List<Long> personIds) {
         Team team = teamRepository.findById(teamId);
@@ -128,16 +167,21 @@ public class TeamService {
         }
         
         int addedMembers = 0;
+        List<Person> members = new ArrayList<>();
         for (Long personId : personIds) {
             Person person = personRepository.findById(personId);
             if (person != null && person.getTeam() == null) {
                 person.setTeam(team);
                 personRepository.update(person);
+                members.add(person);
                 addedMembers++;
             }
         }
-        
-        return new TeamCreateResponseDto(teamId, addedMembers);
+        List<PersonResponseDto> membersDto = members.stream()
+            .map(PersonMapper::toResponseDto)
+            .collect(Collectors.toList());
+            
+        return new TeamCreateResponseDto(teamId, addedMembers, membersDto);
     }
     
     @Transactional
@@ -146,7 +190,6 @@ public class TeamService {
         if (team == null) {
             throw new NotFoundException("Team not found with id: " + teamId);
         }
-        
         int removedMembers = 0;
         for (Long personId : personIds) {
             Person person = personRepository.findById(personId);
@@ -157,6 +200,6 @@ public class TeamService {
             }
         }
         
-        return new TeamCreateResponseDto(teamId, removedMembers);
+        return new TeamCreateResponseDto(teamId, removedMembers, new ArrayList<>());
     }
 }

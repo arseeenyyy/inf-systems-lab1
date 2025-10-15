@@ -2,6 +2,7 @@ package com.github.arseeenyyy.controller;
 
 import com.github.arseeenyyy.dto.TeamCreateRequestDto;
 import com.github.arseeenyyy.dto.TeamCreateResponseDto;
+import com.github.arseeenyyy.dto.TeamDto;
 import com.github.arseeenyyy.dto.TeamToCaveRequestDto;
 import com.github.arseeenyyy.dto.TeamToCaveResponseDto;
 import com.github.arseeenyyy.models.Team;
@@ -22,7 +23,7 @@ public class TeamController {
     private TeamService teamService;
     
     @GET
-    public List<Team> getAllTeams() {
+    public List<TeamDto> getAllTeams() {
         return teamService.getAllTeams();
     }
     

@@ -89,21 +89,40 @@ public class DragonService {
         Person killer = dragon.getKiller();
         DragonHead head = dragon.getHead();
         
-        dragonRepository.delete(id);
-        
         if (cave != null) {
-            dragonCaveRepository.delete(cave.getId());
+            clearCaveReferences(cave.getId());
         }
-        
         if (head != null) {
-            dragonHeadRepository.delete(head.getId());
+            clearHeadReferences(head.getId());
+        }
+        if (killer != null) {
+            clearKillerReferences(killer.getId());
         }
         
-        if (killer != null) {
-            List<Dragon> dragonsUsingKiller = dragonRepository.findByKillerId(killer.getId());
-            if (dragonsUsingKiller.isEmpty()) {
-                personRepository.delete(killer.getId());
-            }
+        dragonRepository.delete(id);
+    }
+
+    private void clearCaveReferences(Long caveId) {
+        List<Dragon> dragonsWithCave = dragonRepository.findByCaveId(caveId);
+        for (Dragon d : dragonsWithCave) {
+            d.setCave(null);
+            dragonRepository.update(d);
+        }
+    }
+
+    private void clearHeadReferences(Long headId) {
+        List<Dragon> dragonsWithHead = dragonRepository.findByHeadId(headId);
+        for (Dragon d : dragonsWithHead) {
+            d.setHead(null);
+            dragonRepository.update(d);
+        }
+    }
+
+    private void clearKillerReferences(Long killerId) {
+        List<Dragon> dragonsWithKiller = dragonRepository.findByKillerId(killerId);
+        for (Dragon d : dragonsWithKiller) {
+            d.setKiller(null);
+            dragonRepository.update(d);
         }
     }
     

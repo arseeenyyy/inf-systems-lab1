@@ -1,11 +1,16 @@
 package com.github.arseeenyyy.repository;
 
+import com.github.arseeenyyy.dto.PersonResponseDto;
+import com.github.arseeenyyy.dto.TeamDto;
+import com.github.arseeenyyy.mapper.PersonMapper;
+import com.github.arseeenyyy.models.Person;
 import com.github.arseeenyyy.models.Team;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class TeamRepository {
@@ -22,6 +27,21 @@ public class TeamRepository {
     public List<Team> findAll() {
         return entityManager.createQuery("SELECT t FROM Team t", Team.class)
                 .getResultList();
+    }
+    public List<TeamDto> findAllWithMembers() {
+        List<Team> teams = findAll();
+        return teams.stream().map(team -> {
+            List<Person> members = entityManager.createQuery(
+                "SELECT p FROM Person p WHERE p.team.id = :teamId", Person.class)
+                .setParameter("teamId", team.getId())
+                .getResultList();
+            
+            List<PersonResponseDto> membersDto = members.stream()
+                .map(PersonMapper::toResponseDto)
+                .collect(Collectors.toList());
+                
+            return new TeamDto(team.getId(), team.getName(), membersDto.size(), membersDto);
+        }).toList();
     }
 
     public Team findById(Long id) {

@@ -21,29 +21,6 @@ public class PersonMapper {
         return person;
     }
 
-//    public static PersonResponseDto toResponseDto(Person person) {
-//         PersonResponseDto dto = new PersonResponseDto();
-//         dto.setId(person.getId());
-//         dto.setName(person.getName());
-//         dto.setEyeColor(person.getEyeColor());
-//         dto.setHairColor(person.getHairColor());
-//         dto.setHeight(person.getHeight());
-//         dto.setNationality(person.getNationality());
-        
-//         if (person.getLocation() != null) {
-//             dto.setLocation(LocationMapper.toResponseDto(person.getLocation()));
-//         } else {
-//             dto.setLocation(null);
-//         }
-        
-//         if (person.getTeam() != null) {
-//             dto.setTeamName(person.getTeam().getTeamName());
-//         } else {
-//             dto.setTeamName(null);
-//         }
-        
-//         return dto;
-//     }
     public static PersonResponseDto toResponseDto(Person person) {
         return new PersonResponseDto(
             person.getId(), 
