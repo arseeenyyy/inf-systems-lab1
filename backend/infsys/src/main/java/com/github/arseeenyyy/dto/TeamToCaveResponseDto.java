@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TeamToCaveResponseDto {
     private Long treasuresFound;
+    private Integer dragonsKilled;
 }

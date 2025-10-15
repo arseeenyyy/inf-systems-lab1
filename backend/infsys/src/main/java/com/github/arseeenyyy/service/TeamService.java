@@ -4,10 +4,12 @@ import com.github.arseeenyyy.dto.TeamCreateRequestDto;
 import com.github.arseeenyyy.dto.TeamCreateResponseDto;
 import com.github.arseeenyyy.dto.TeamToCaveRequestDto;
 import com.github.arseeenyyy.dto.TeamToCaveResponseDto;
+import com.github.arseeenyyy.models.Dragon;
 import com.github.arseeenyyy.models.DragonCave;
 import com.github.arseeenyyy.models.Person;
 import com.github.arseeenyyy.models.Team;
 import com.github.arseeenyyy.repository.DragonCaveRepository;
+import com.github.arseeenyyy.repository.DragonRepository;
 import com.github.arseeenyyy.repository.PersonRepository;
 import com.github.arseeenyyy.repository.TeamRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,6 +29,9 @@ public class TeamService {
     
     @Inject
     private DragonCaveRepository dragonCaveRepository;
+    
+    @Inject
+    private DragonRepository dragonRepository;
 
     @Transactional
     public TeamCreateResponseDto createTeam(TeamCreateRequestDto requestDto) {
@@ -58,13 +63,18 @@ public class TeamService {
     public Team getTeamById(Long id) {
         Team team = teamRepository.findById(id);
         if (team == null) {
-            throw new NotFoundException("team not found with id: " + id);
+            throw new NotFoundException("Team not found with id: " + id);
         }
         return team;
     }
     
     @Transactional
     public void deleteTeam(Long id) {
+        Team team = teamRepository.findById(id);
+        if (team == null) {
+            throw new NotFoundException("Team not found with id: " + id);
+        }
+        
         List<Person> teamMembers = personRepository.findByTeamId(id);
         for (Person person : teamMembers) {
             person.setTeam(null);
@@ -78,26 +88,45 @@ public class TeamService {
     public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto) {
         Team team = teamRepository.findById(requestDto.getTeamId());
         if (team == null) {
-            throw new NotFoundException("team not found with id: " + requestDto.getTeamId());
+            throw new NotFoundException("Team not found with id: " + requestDto.getTeamId());
         }
         
         DragonCave cave = dragonCaveRepository.findById(requestDto.getCaveId());
         if (cave == null) {
-            throw new NotFoundException("cave not found with id: " + requestDto.getCaveId());
+            throw new NotFoundException("Cave not found with id: " + requestDto.getCaveId());
         }
-                // .orElseThrow(() -> new NotFoundException("Cave not found with id: " + requestDto.getCaveId()));
+        
+        List<Dragon> dragonsInCave = dragonRepository.findByCaveId(requestDto.getCaveId());
+        
+        List<Person> teamMembers = personRepository.findByTeamId(requestDto.getTeamId());
         
         Long treasures = cave.getNumberOfTreasures();
+        int dragonsKilled = 0;
         
-        return new TeamToCaveResponseDto(treasures);
+        if (!dragonsInCave.isEmpty() && !teamMembers.isEmpty()) {
+            Person randomKiller = teamMembers.get(0); 
+            
+            for (Dragon dragon : dragonsInCave) {
+                if (dragon.getKiller() == null) { 
+                    dragon.setKiller(randomKiller);
+                    dragonRepository.update(dragon);
+                    dragonsKilled++;
+                }
+            }
+            cave.setNumberOfTreasures(1L);
+            dragonCaveRepository.update(cave);            
+        }
+        
+        return new TeamToCaveResponseDto(treasures, dragonsKilled);
     }
     
     @Transactional
     public TeamCreateResponseDto addMembersToTeam(Long teamId, List<Long> personIds) {
         Team team = teamRepository.findById(teamId);
         if (team == null) {
-            throw new NotFoundException("team not found with id: " + teamId);
-        }        
+            throw new NotFoundException("Team not found with id: " + teamId);
+        }
+        
         int addedMembers = 0;
         for (Long personId : personIds) {
             Person person = personRepository.findById(personId);
@@ -115,7 +144,7 @@ public class TeamService {
     public TeamCreateResponseDto removeMembersFromTeam(Long teamId, List<Long> personIds) {
         Team team = teamRepository.findById(teamId);
         if (team == null) {
-            throw new NotFoundException("team not found with id: " + teamId);
+            throw new NotFoundException("Team not found with id: " + teamId);
         }
         
         int removedMembers = 0;
