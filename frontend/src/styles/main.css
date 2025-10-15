@@ -268,3 +268,14 @@ body {
   background: #8C26FC;
   color: #1a1a1a;
 }
+.form-input.error, .form-select.error {
+  border-color: #ff4444 !important;
+  background: #3a1a1a;
+}
+
+.error-text {
+  color: #ff4444;
+  font-size: 11px;
+  margin-top: 2px;
+  display: block;
+}

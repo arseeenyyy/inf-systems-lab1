@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '../api/client';
 
-const DragonForm = ({ dragon, onSubmit, onCancel }) => {
+const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, heads }) => {
   const [formData, setFormData] = useState({
     name: '',
     coordinatesId: '',
@@ -13,17 +12,7 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
     color: '',
     character: ''
   });
-
-  const [relatedData, setRelatedData] = useState({
-    coordinates: [],
-    caves: [],
-    persons: [],
-    heads: []
-  });
-
-  useEffect(() => {
-    loadRelatedData();
-  }, []);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (dragon) {
@@ -38,64 +27,71 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
         color: dragon.color || '',
         character: dragon.character || ''
       });
+      setErrors({});
     } else {
       setFormData({
         name: '', coordinatesId: '', caveId: '', killerId: '', headId: '',
         age: '', weight: '', color: '', character: ''
       });
+      setErrors({});
     }
   }, [dragon]);
-
-  const loadRelatedData = async () => {
-    try {
-      const [coordinates, caves, persons, heads] = await Promise.all([
-        apiClient.getCoordinates(),
-        apiClient.getCaves(),
-        apiClient.getPersons(),
-        apiClient.getHeads()
-      ]);
-      setRelatedData({ coordinates, caves, persons, heads });
-    } catch (error) {
-      console.error('Failed to load related data:', error);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // очищаем ошибку для этого поля
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const validateAndSubmit = (data) => {
+    const newErrors = {};
+
+    // Обязательные поля
+    if (!data.name.trim()) newErrors.name = 'required';
+    if (!data.coordinatesId) newErrors.coordinatesId = 'required';
+
+    // Числа
+    const age = parseInt(data.age);
+    const weight = parseFloat(data.weight);
+    if (isNaN(age) || age <= 0) newErrors.age = '> 0';
+    if (isNaN(weight) || weight <= 0) newErrors.weight = '> 0';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // блокируем HTML5 validation
     
-    // Валидация
-    const age = parseInt(formData.age);
-    const weight = parseFloat(formData.weight);
-    
-    if (age <= 0) {
-      alert('Age must be greater than 0');
-      return;
-    }
-    
-    if (weight <= 0) {
-      alert('Weight must be greater than 0');
+    setErrors({});
+
+    if (!validateAndSubmit(formData)) {
       return;
     }
 
-    const data = {
-      ...formData,
-      coordinatesId: formData.coordinatesId ? parseInt(formData.coordinatesId) : null,
-      caveId: formData.caveId ? parseInt(formData.caveId) : null,
-      killerId: formData.killerId ? parseInt(formData.killerId) : null,
-      headId: formData.headId ? parseInt(formData.headId) : null,
-      age: age,
-      weight: weight
-    };
-    onSubmit(data);
+    try {
+      const data = {
+        ...formData,
+        coordinatesId: parseInt(formData.coordinatesId),
+        caveId: formData.caveId ? parseInt(formData.caveId) : null,
+        killerId: formData.killerId ? parseInt(formData.killerId) : null,
+        headId: formData.headId ? parseInt(formData.headId) : null,
+        age: parseInt(formData.age),
+        weight: parseFloat(formData.weight)
+      };
+      await onSubmit(data);
+    } catch (error) {
+      console.error('Failed to submit dragon:', error);
+      setErrors({ submit: `Server error: ${error.message}` });
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form">
+    <form onSubmit={handleSubmit} className="form" noValidate>
       <div className="form-group">
         <label className="form-label">name</label>
         <input
@@ -103,9 +99,10 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="form-input"
-          required
+          className={`form-input ${errors.name ? 'error' : ''}`}
+          // убираем required - используем свою валидацию
         />
+        {errors.name && <span className="error-text">name: {errors.name}</span>}
       </div>
 
       <div className="form-group">
@@ -114,16 +111,17 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
           name="coordinatesId"
           value={formData.coordinatesId}
           onChange={handleChange}
-          className="form-select"
-          required
+          className={`form-select ${errors.coordinatesId ? 'error' : ''}`}
+          // убираем required
         >
           <option value=""></option>
-          {relatedData.coordinates.map(coord => (
+          {coordinates.map(coord => (
             <option key={coord.id} value={coord.id}>
               ({coord.x};{coord.y})
             </option>
           ))}
         </select>
+        {errors.coordinatesId && <span className="error-text">coordinates: {errors.coordinatesId}</span>}
       </div>
 
       <div className="form-row">
@@ -134,10 +132,11 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
             name="age"
             value={formData.age}
             onChange={handleChange}
-            className="form-input"
+            className={`form-input ${errors.age ? 'error' : ''}`}
             placeholder="> 0"
-            required
+            // убираем required
           />
+          {errors.age && <span className="error-text">age: {errors.age}</span>}
         </div>
 
         <div className="form-group">
@@ -147,10 +146,11 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
             name="weight"
             value={formData.weight}
             onChange={handleChange}
-            className="form-input"
+            className={`form-input ${errors.weight ? 'error' : ''}`}
             placeholder="> 0"
-            required
+            // убираем required
           />
+          {errors.weight && <span className="error-text">weight: {errors.weight}</span>}
         </div>
       </div>
 
@@ -164,7 +164,7 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
             className="form-select"
           >
             <option value=""></option>
-            {relatedData.caves.map(cave => (
+            {caves.map(cave => (
               <option key={cave.id} value={cave.id}>
                 treasures:{cave.numberOfTreasures || '?'}
               </option>
@@ -181,7 +181,7 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
             className="form-select"
           >
             <option value=""></option>
-            {relatedData.persons.map(person => (
+            {persons.map(person => (
               <option key={person.id} value={person.id}>
                 {person.name}
               </option>
@@ -200,7 +200,7 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
             className="form-select"
           >
             <option value=""></option>
-            {relatedData.heads.map(head => (
+            {heads.map(head => (
               <option key={head.id} value={head.id}>
                 ({head.size};{head.eyesCount || '?'})
               </option>
@@ -238,6 +238,12 @@ const DragonForm = ({ dragon, onSubmit, onCancel }) => {
           <option value="CHAOTIC_EVIL">chaotic_evil</option>
         </select>
       </div>
+      
+      {errors.submit && (
+        <div className="error-text" style={{ marginTop: '5px' }}>
+          {errors.submit}
+        </div>
+      )}
       
       <div className="actions">
         <button type="submit" className="btn btn-primary">

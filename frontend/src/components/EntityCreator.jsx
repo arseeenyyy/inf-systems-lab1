@@ -5,6 +5,7 @@ const EntityCreator = ({ onEntityCreated }) => {
   const [selectedType, setSelectedType] = useState('coordinates');
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({}); // для ошибок
 
   const entityTypes = [
     { value: 'coordinates', label: 'coordinates' },
@@ -16,6 +17,7 @@ const EntityCreator = ({ onEntityCreated }) => {
   const handleTypeChange = (type) => {
     setSelectedType(type);
     setFormData(getDefaultFormData(type));
+    setErrors({}); // очищаем ошибки
   };
 
   function getDefaultFormData(type) {
@@ -36,70 +38,110 @@ const EntityCreator = ({ onEntityCreated }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // очищаем ошибку для этого поля
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateAndSubmit = (data) => {
+    const newErrors = {};
+
+    switch (selectedType) {
+      case 'coordinates':
+        const x = parseFloat(data.x);
+        const y = parseFloat(data.y);
+        if (isNaN(x) || x > 696 || x < 0) {
+          newErrors.x = 'x: 0-696';
+        }
+        if (isNaN(y) || y > 366 || y < 0) {
+          newErrors.y = 'y: 0-366';
+        }
+        break;
+
+      case 'cave':
+        const treasures = data.numberOfTreasures ? parseInt(data.numberOfTreasures) : null;
+        if (treasures !== null && (isNaN(treasures) || treasures <= 0)) {
+          newErrors.numberOfTreasures = '> 0';
+        }
+        break;
+
+      case 'person':
+        if (!data.name.trim()) {
+          newErrors.name = 'required';
+        }
+        if (!data.eyeColor) {
+          newErrors.eyeColor = 'required';
+        }
+        const height = parseInt(data.height);
+        if (isNaN(height) || height <= 0) {
+          newErrors.height = '> 0';
+        }
+        break;
+
+      case 'head':
+        const size = parseInt(data.size);
+        if (isNaN(size) || size <= 0) {
+          newErrors.size = '> 0';
+        }
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
+
+    if (!validateAndSubmit(formData)) {
+      setLoading(false);
+      return;
+    }
 
     try {
       let created;
       
       switch (selectedType) {
         case 'coordinates':
-          const x = parseFloat(formData.x);
-          const y = parseFloat(formData.y);
-          if (isNaN(x) || isNaN(y) || x > 696 || x < 0 || y > 366 || y < 0) {
-            alert('Invalid coordinates: x ≤ 696, y ≤ 366, both must be numbers');
-            return;
-          }
-          created = await apiClient.createCoordinates({ x, y });
+          created = await apiClient.createCoordinates({
+            x: parseFloat(formData.x),
+            y: parseFloat(formData.y)
+          });
           break;
           
         case 'cave':
-          const treasures = formData.numberOfTreasures ? parseInt(formData.numberOfTreasures) : null;
-          if (treasures !== null && (isNaN(treasures) || treasures <= 0)) {
-            alert('Number of treasures must be greater than 0');
-            return;
-          }
-          created = await apiClient.createCave({ numberOfTreasures: treasures });
+          created = await apiClient.createCave({
+            numberOfTreasures: formData.numberOfTreasures ? parseInt(formData.numberOfTreasures) : null
+          });
           break;
           
         case 'person':
-          const height = parseInt(formData.height);
-          if (isNaN(height) || height <= 0) {
-            alert('Height must be greater than 0');
-            return;
-          }
-          if (!formData.name || !formData.eyeColor) {
-            alert('Name and eye color are required');
-            return;
-          }
           created = await apiClient.createPerson({
-            ...formData,
-            height: height,
+            name: formData.name,
+            eyeColor: formData.eyeColor,
             hairColor: formData.hairColor || null,
+            height: parseInt(formData.height),
             nationality: formData.nationality || null
           });
           break;
           
         case 'head':
-          const size = parseInt(formData.size);
-          const eyesCount = formData.eyesCount ? parseInt(formData.eyesCount) : null;
-          if (isNaN(size) || size <= 0) {
-            alert('Size must be greater than 0');
-            return;
-          }
-          created = await apiClient.createHead({ size, eyesCount });
+          created = await apiClient.createHead({
+            size: parseInt(formData.size),
+            eyesCount: formData.eyesCount ? parseInt(formData.eyesCount) : null
+          });
           break;
       }
       
-      onEntityCreated(selectedType, created);
+      onEntityCreated(selectedType);
       setFormData(getDefaultFormData(selectedType));
       
     } catch (error) {
       console.error(`Failed to create ${selectedType}:`, error);
-      alert(`Error creating ${selectedType}`);
+      setErrors({ submit: `Server error: ${error.message}` });
     } finally {
       setLoading(false);
     }
@@ -117,10 +159,11 @@ const EntityCreator = ({ onEntityCreated }) => {
                 name="x"
                 value={formData.x || ''}
                 onChange={handleChange}
-                className="form-input"
+                className={`form-input ${errors.x ? 'error' : ''}`}
                 placeholder="0-696"
                 required
               />
+              {errors.x && <span className="error-text">{errors.x}</span>}
             </div>
             <div className="form-group">
               <label className="form-label">y (max:366)</label>
@@ -129,10 +172,11 @@ const EntityCreator = ({ onEntityCreated }) => {
                 name="y"
                 value={formData.y || ''}
                 onChange={handleChange}
-                className="form-input"
+                className={`form-input ${errors.y ? 'error' : ''}`}
                 placeholder="0-366"
                 required
               />
+              {errors.y && <span className="error-text">{errors.y}</span>}
             </div>
           </div>
         );
@@ -146,9 +190,10 @@ const EntityCreator = ({ onEntityCreated }) => {
               name="numberOfTreasures"
               value={formData.numberOfTreasures || ''}
               onChange={handleChange}
-              className="form-input"
+              className={`form-input ${errors.numberOfTreasures ? 'error' : ''}`}
               placeholder="> 0"
             />
+            {errors.numberOfTreasures && <span className="error-text">{errors.numberOfTreasures}</span>}
           </div>
         );
         
@@ -162,9 +207,10 @@ const EntityCreator = ({ onEntityCreated }) => {
                 name="name"
                 value={formData.name || ''}
                 onChange={handleChange}
-                className="form-input"
+                className={`form-input ${errors.name ? 'error' : ''}`}
                 required
               />
+              {errors.name && <span className="error-text">{errors.name}</span>}
             </div>
             <div className="form-row">
               <div className="form-group">
@@ -173,7 +219,7 @@ const EntityCreator = ({ onEntityCreated }) => {
                   name="eyeColor"
                   value={formData.eyeColor || ''}
                   onChange={handleChange}
-                  className="form-select"
+                  className={`form-select ${errors.eyeColor ? 'error' : ''}`}
                   required
                 >
                   <option value=""></option>
@@ -181,6 +227,7 @@ const EntityCreator = ({ onEntityCreated }) => {
                   <option value="BLUE">blue</option>
                   <option value="YELLOW">yellow</option>
                 </select>
+                {errors.eyeColor && <span className="error-text">{errors.eyeColor}</span>}
               </div>
               <div className="form-group">
                 <label className="form-label">hair color</label>
@@ -205,10 +252,11 @@ const EntityCreator = ({ onEntityCreated }) => {
                   name="height"
                   value={formData.height || ''}
                   onChange={handleChange}
-                  className="form-input"
+                  className={`form-input ${errors.height ? 'error' : ''}`}
                   placeholder="> 0"
                   required
                 />
+                {errors.height && <span className="error-text">{errors.height}</span>}
               </div>
               <div className="form-group">
                 <label className="form-label">nationality</label>
@@ -238,10 +286,11 @@ const EntityCreator = ({ onEntityCreated }) => {
                 name="size"
                 value={formData.size || ''}
                 onChange={handleChange}
-                className="form-input"
+                className={`form-input ${errors.size ? 'error' : ''}`}
                 placeholder="> 0"
                 required
               />
+              {errors.size && <span className="error-text">{errors.size}</span>}
             </div>
             <div className="form-group">
               <label className="form-label">eyes count</label>
@@ -282,6 +331,12 @@ const EntityCreator = ({ onEntityCreated }) => {
 
       <form onSubmit={handleSubmit} className="form">
         {renderForm()}
+        
+        {errors.submit && (
+          <div className="error-text" style={{ marginTop: '5px' }}>
+            {errors.submit}
+          </div>
+        )}
         
         <div className="actions">
           <button 

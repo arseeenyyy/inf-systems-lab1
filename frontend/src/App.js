@@ -8,27 +8,41 @@ import './styles/main.css';
 
 function App() {
   const [dragons, setDragons] = useState([]);
+  const [coordinates, setCoordinates] = useState([]);
+  const [caves, setCaves] = useState([]);
+  const [persons, setPersons] = useState([]);
+  const [heads, setHeads] = useState([]);
   const [selectedDragon, setSelectedDragon] = useState(null);
   const [editingDragon, setEditingDragon] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   useEffect(() => {
-    loadDragons();
+    loadAllData();
   }, []);
 
-  const loadDragons = async () => {
+  const loadAllData = async () => {
     try {
-      const data = await apiClient.getDragons();
-      setDragons(data);
+      const [dragonsData, coordsData, cavesData, personsData, headsData] = await Promise.all([
+        apiClient.getDragons(),
+        apiClient.getCoordinates(),
+        apiClient.getCaves(),
+        apiClient.getPersons(),
+        apiClient.getHeads()
+      ]);
+      setDragons(dragonsData);
+      setCoordinates(coordsData);
+      setCaves(cavesData);
+      setPersons(personsData);
+      setHeads(headsData);
     } catch (error) {
-      console.error('Failed to load dragons:', error);
+      console.error('Failed to load data:', error);
     }
   };
 
   const handleCreateDragon = async (dragonData) => {
     try {
       await apiClient.createDragon(dragonData);
-      await loadDragons();
+      await loadAllData();
     } catch (error) {
       console.error('Failed to create dragon:', error);
     }
@@ -38,7 +52,7 @@ function App() {
     try {
       await apiClient.updateDragon(editingDragon.id, dragonData);
       setEditingDragon(null);
-      await loadDragons();
+      await loadAllData();
     } catch (error) {
       console.error('Failed to update dragon:', error);
     }
@@ -49,7 +63,7 @@ function App() {
       await apiClient.deleteDragon(id);
       if (selectedDragon?.id === id) setSelectedDragon(null);
       if (editingDragon?.id === id) setEditingDragon(null);
-      await loadDragons();
+      await loadAllData();
     } catch (error) {
       console.error('Failed to delete dragon:', error);
     }
@@ -59,8 +73,29 @@ function App() {
     setEditingDragon(dragon);
   };
 
-  const handleEntityCreated = (entityType, createdEntity) => {
-    console.log(`Created ${entityType}:`, createdEntity);
+  const handleEntityCreated = async (entityType) => {
+    try {
+      switch (entityType) {
+        case 'coordinates':
+          const coords = await apiClient.getCoordinates();
+          setCoordinates(coords);
+          break;
+        case 'cave':
+          const cavesData = await apiClient.getCaves();
+          setCaves(cavesData);
+          break;
+        case 'person':
+          const personsData = await apiClient.getPersons();
+          setPersons(personsData);
+          break;
+        case 'head':
+          const headsData = await apiClient.getHeads();
+          setHeads(headsData);
+          break;
+      }
+    } catch (error) {
+      console.error(`Failed to refresh ${entityType}:`, error);
+    }
   };
 
   return (
@@ -76,6 +111,10 @@ function App() {
               dragon={editingDragon}
               onSubmit={editingDragon ? handleUpdateDragon : handleCreateDragon}
               onCancel={() => setEditingDragon(null)}
+              coordinates={coordinates}
+              caves={caves}
+              persons={persons}
+              heads={heads}
             />
           </div>
           <EntityCreator onEntityCreated={handleEntityCreated} />
