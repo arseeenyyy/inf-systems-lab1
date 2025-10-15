@@ -16,9 +16,16 @@ class ApiClient {
   async deleteDragon(id) { return this.request(`/dragons/${id}`, { method: 'DELETE' }); }
 
   async getCoordinates() { return this.request('/coordinates'); }
+  async createCoordinates(data) { return this.request('/coordinates', { method: 'POST', body: JSON.stringify(data) }); }
+  
   async getCaves() { return this.request('/caves'); }
+  async createCave(data) { return this.request('/caves', { method: 'POST', body: JSON.stringify(data) }); }
+  
   async getHeads() { return this.request('/heads'); }
+  async createHead(data) { return this.request('/heads', { method: 'POST', body: JSON.stringify(data) }); }
+  
   async getPersons() { return this.request('/persons'); }
+  async createPerson(data) { return this.request('/persons', { method: 'POST', body: JSON.stringify(data) }); }
 }
 
 export const apiClient = new ApiClient();

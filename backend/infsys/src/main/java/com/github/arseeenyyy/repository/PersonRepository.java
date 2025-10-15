@@ -43,4 +43,11 @@ public class PersonRepository {
     public Person update(Person person) {
         return entityManager.merge(person);
     }
+
+    public List<Person> findByTeamId(Long teamId) {
+        return entityManager.createQuery(
+            "SELECT p FROM Person p WHERE p.team.id = :teamId", Person.class)
+            .setParameter("teamId", teamId)
+            .getResultList();
+    }
 }

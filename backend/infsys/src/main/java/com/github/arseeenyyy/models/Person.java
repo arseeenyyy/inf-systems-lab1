@@ -39,7 +39,7 @@ public class Person {
     private Color eyeColor; //Поле не может быть null
 
     @Enumerated(EnumType.STRING) 
-    @Column(name = "hair_color", nullable = false) 
+    @Column(name = "hair_color") 
     private Color hairColor; //Поле может быть null
 
     @ManyToOne(fetch = FetchType.EAGER) 
@@ -53,7 +53,7 @@ public class Person {
     @Enumerated(EnumType.STRING) 
     private Country nationality; //Поле может быть null
 
-    // @ManyToOne(fetch = FetchType.LAZY) 
-    // @JoinColumn(name = "team_id")
-    // private Team team;
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team;
 }
