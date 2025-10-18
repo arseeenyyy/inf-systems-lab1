@@ -14,6 +14,16 @@ class ApiClient {
   async createDragon(data) { return this.request('/dragons', { method: 'POST', body: JSON.stringify(data) }); }
   async updateDragon(id, data) { return this.request(`/dragons/${id}`, { method: 'PUT', body: JSON.stringify(data) }); }
   async deleteDragon(id) { return this.request(`/dragons/${id}`, { method: 'DELETE' }); }
+  async deleteAllByColor(color) {
+  return this.request(`/dragons/color/${color}/all`, { method: 'DELETE' });
+}
+async deleteOneByColor(color) {
+  return this.request(`/dragons/color/${color}/one`, { method: 'DELETE' });
+}
+async findByNameStartingWith(substring) {
+  return this.request(`/dragons/name-starts-with/${substring}`);
+}
+
 
   async getCoordinates() { return this.request('/coordinates'); }
   async createCoordinates(data) { return this.request('/coordinates', { method: 'POST', body: JSON.stringify(data) }); }
@@ -48,6 +58,9 @@ async getTeams() { return this.request('/teams'); }
         caveId: parseInt(data.caveId) 
       }) 
     }); 
+  }
+  async deleteTeam(id) {
+    return this.request(`/teams/${id}`, { method: 'DELETE' });
   }
 }
 

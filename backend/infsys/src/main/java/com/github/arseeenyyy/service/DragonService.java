@@ -137,6 +137,9 @@ public class DragonService {
         existingDragon.setWeight(requestDto.getWeight());
         existingDragon.setColor(requestDto.getColor());
         existingDragon.setCharacter(requestDto.getCharacter());
+        existingDragon.setCave(dragonCaveRepository.findById(requestDto.getCaveId()));
+        existingDragon.setHead(dragonHeadRepository.findById(requestDto.getHeadId()));
+        existingDragon.setKiller(personRepository.findById(requestDto.getKillerId()));
         
         Dragon updatedDragon = dragonRepository.update(existingDragon);
         return DragonMapper.toResponseDto(updatedDragon);

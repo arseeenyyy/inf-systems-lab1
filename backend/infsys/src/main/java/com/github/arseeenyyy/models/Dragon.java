@@ -51,12 +51,10 @@ public class Dragon {
 
     @ManyToOne
     @JoinColumn(name = "cave_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private DragonCave cave; //Поле может быть null
 
     @ManyToOne
     @JoinColumn(name = "killer_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Person killer; //Поле может быть null
 
     @Column(nullable = false)
@@ -78,7 +76,6 @@ public class Dragon {
     
     @ManyToOne
     @JoinColumn(name = "head_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private DragonHead head;
 
     @Builder

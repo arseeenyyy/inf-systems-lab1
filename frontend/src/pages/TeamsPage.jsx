@@ -5,10 +5,11 @@ const TeamsPage = () => {
   const [teams, setTeams] = useState([]);
   const [persons, setPersons] = useState([]);
   const [caves, setCaves] = useState([]);
-  const [totalTreasures, setTotalTreasures] = useState(0); // ✅ НОВОЕ!
+  const [totalTreasures, setTotalTreasures] = useState(0); 
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [createFormData, setCreateFormData] = useState({ name: '', personsIds: [] });
   const [sendFormData, setSendFormData] = useState({ teamId: '', caveId: '' });
+  const [dragonOperations, setDragonOperations] = useState({ color: '', substring: '', searchResults: [] });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -27,11 +28,59 @@ const TeamsPage = () => {
       setPersons(personsData);
       setCaves(cavesData);
       
-      // ✅ СЧИТАЕМ treasures
       const total = cavesData.reduce((sum, cave) => sum + (cave.numberOfTreasures || 0), 0);
       setTotalTreasures(total);
     } catch (error) {
       console.error('Failed to load data:', error);
+    }
+  };
+
+  const handleDeleteTeam = async (teamId) => {
+    try {
+      await apiClient.deleteTeam(teamId);
+      if (selectedTeam && selectedTeam.id === teamId) {
+        setSelectedTeam(null);
+      }
+      await loadAllData();
+    } catch (error) {
+      console.error('Failed to delete team:', error);
+    }
+  };
+
+  const handleDragonOperationChange = (e) => {
+    const { name, value } = e.target;
+    setDragonOperations(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDeleteAllByColor = async () => {
+    if (!dragonOperations.color) return;
+    try {
+      await apiClient.deleteAllByColor(dragonOperations.color);
+      await loadAllData();
+      setDragonOperations(prev => ({ ...prev, color: '' }));
+    } catch (error) {
+      console.error('Failed to delete dragons by color:', error);
+    }
+  };
+
+  const handleDeleteOneByColor = async () => {
+    if (!dragonOperations.color) return;
+    try {
+      await apiClient.deleteOneByColor(dragonOperations.color);
+      await loadAllData();
+      setDragonOperations(prev => ({ ...prev, color: '' }));
+    } catch (error) {
+      console.error('Failed to delete one dragon by color:', error);
+    }
+  };
+
+  const handleSearchByName = async () => {
+    if (!dragonOperations.substring) return;
+    try {
+      const results = await apiClient.findByNameStartingWith(dragonOperations.substring);
+      setDragonOperations(prev => ({ ...prev, searchResults: results }));
+    } catch (error) {
+      console.error('Failed to search dragons:', error);
     }
   };
 
@@ -83,14 +132,12 @@ const TeamsPage = () => {
     setSendFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // ✅ УБРАЛИ sendResult - просто обновляем данные
   const handleSendSubmit = async (e) => {
     e.preventDefault();
     if (!sendFormData.teamId || !sendFormData.caveId) return;
     
     try {
       await apiClient.sendTeamToCave(sendFormData);
-      // ✅ ПЕЩЕРА УДАЛЯЕТСЯ - обновляем всё
       await loadAllData();
     } catch (error) {
       console.error('Failed to send team:', error);
@@ -99,8 +146,7 @@ const TeamsPage = () => {
 
   return (
     <div className="layout">
-      <div className="sidebar" style={{ width: '400px' }}>
-        {/* CREATE TEAM - БЕЗ ИЗМЕНЕНИЙ */}
+      <div className="sidebar">
         <div className="panel">
           <div className="panel-title">[create_team]</div>
           <form onSubmit={handleCreateSubmit} className="form" noValidate>
@@ -117,27 +163,23 @@ const TeamsPage = () => {
             </div>
             <div className="form-group">
               <label className="form-label">members</label>
-              <div style={{ 
-                maxHeight: '200px', overflowY: 'auto', 
-                border: '1px solid #444', padding: '10px',
-                minHeight: '200px'
-              }}>
+              <div className="checkbox-container">
                 {availablePersons.length > 0 ? (
                   availablePersons.map(person => (
-                    <div key={person.id} style={{ marginBottom: '8px' }}>
+                    <div key={person.id} className="checkbox-item">
                       <input
                         type="checkbox"
                         id={`person-${person.id}`}
                         checked={createFormData.personsIds.includes(person.id)}
                         onChange={() => handleCheckboxChange(person.id)}
                       />
-                      <label htmlFor={`person-${person.id}`} style={{ marginLeft: '8px' }}>
+                      <label htmlFor={`person-${person.id}`}>
                         {person.name}
                       </label>
                     </div>
                   ))
                 ) : (
-                  <p style={{ color: '#888' }}>No available persons</p>
+                  <p className="no-data">No available persons</p>
                 )}
               </div>
               {errors.personsIds && <span className="error-text">members: {errors.personsIds}</span>}
@@ -151,7 +193,6 @@ const TeamsPage = () => {
           </form>
         </div>
 
-        {/* SEND TO CAVE - УБРАЛИ JSON! */}
         <div className="panel">
           <div className="panel-title">[send_to_cave]</div>
           <form onSubmit={handleSendSubmit} className="form">
@@ -180,40 +221,106 @@ const TeamsPage = () => {
             <div className="actions">
               <button type="submit" className="btn btn-primary">[send to cave]</button>
             </div>
-            {/* ✅ УБРАЛИ json-view! */}
           </form>
         </div>
 
-        {/* SELECTED TEAM - БЕЗ ИЗМЕНЕНИЙ */}
         <div className="panel">
           <div className="panel-title">[selected_team_data]</div>
           {selectedTeam ? (
-            <div className="json-view">
-              <pre>{JSON.stringify({
-                id: selectedTeam.id,
-                name: selectedTeam.name,
-                members_count: selectedTeam.memberCount,
-                members: selectedTeam.members || []
-              }, null, 2)}</pre>
+            <div>
+              <div className="json-view">
+                <pre>{JSON.stringify({
+                  id: selectedTeam.id,
+                  name: selectedTeam.name,
+                  members_count: selectedTeam.memberCount,
+                  members: selectedTeam.members || []
+                }, null, 2)}</pre>
+              </div>
+              <div className="actions">
+                <button 
+                  onClick={() => handleDeleteTeam(selectedTeam.id)}
+                  className="btn btn-danger"
+                >
+                  [delete]
+                </button>
+              </div>
             </div>
           ) : (
             <div className="no-selection">NO_SELECTION</div>
           )}
         </div>
+
+        <div className="panel">
+          <div className="panel-title">[dragon_operations]</div>
+          <div className="form">
+            <div className="form-group">
+              <label className="form-label">color</label>
+              <input
+                type="text"
+                name="color"
+                value={dragonOperations.color}
+                onChange={handleDragonOperationChange}
+                className="form-input"
+                placeholder="Enter color"
+              />
+              <div className="actions">
+                <button 
+                  onClick={handleDeleteAllByColor} 
+                  className="btn btn-danger"
+                  disabled={!dragonOperations.color}
+                >
+                  [delete all by color]
+                </button>
+                <button 
+                  onClick={handleDeleteOneByColor} 
+                  className="btn btn-danger"
+                  disabled={!dragonOperations.color}
+                >
+                  [delete one by color]
+                </button>
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">name substring</label>
+              <input
+                type="text"
+                name="substring"
+                value={dragonOperations.substring}
+                onChange={handleDragonOperationChange}
+                className="form-input"
+                placeholder="Enter name substring"
+              />
+              <div className="actions">
+                <button 
+                  onClick={handleSearchByName} 
+                  className="btn btn-primary"
+                  disabled={!dragonOperations.substring}
+                >
+                  [search by name]
+                </button>
+              </div>
+            </div>
+            {dragonOperations.searchResults.length > 0 && (
+              <div className="search-results">
+                <div className="results-count">
+                  Found: {dragonOperations.searchResults.length} dragons
+                </div>
+                <div className="results-list">
+                  {dragonOperations.searchResults.map(dragon => (
+                    <div key={dragon.id} className="result-item">
+                      {dragon.id}: {dragon.name} ({dragon.color})
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="main">
-        {}
-        <div style={{ 
-          padding: '10px', 
-          background: '#333', 
-          color: '#ffd700', 
-          fontSize: '12px', 
-          fontWeight: 'bold',
-          marginBottom: '10px',
-          textAlign: 'center'
-        }}>
-           [total treasures: {totalTreasures}]
+        <div className="treasures-info">
+          [total treasures: {totalTreasures}]
         </div>
 
         <div className="panel">

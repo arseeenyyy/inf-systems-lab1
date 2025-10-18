@@ -39,6 +39,16 @@ const DragonTable = ({ dragons, selectedDragon, sortConfig, onSelectDragon, onSo
     return `(${head.size};${eyes})`;
   };
 
+  // Функция для обрезания длинных имен
+  const formatName = (name) => {
+    if (!name) return 'null';
+    const maxLength = 15;
+    if (name.length > maxLength) {
+      return name.substring(0, maxLength) + '...';
+    }
+    return name;
+  };
+
   return (
     <div className="table-container">
       <table className="table">
@@ -75,7 +85,7 @@ const DragonTable = ({ dragons, selectedDragon, sortConfig, onSelectDragon, onSo
               onClick={() => onSelectDragon(dragon)}
             >
               <td>{dragon.id}</td>
-              <td>{dragon.name}</td>
+              <td title={dragon.name}>{formatName(dragon.name)}</td>
               <td>{formatCoordinates(dragon.coordinates)}</td>
               <td>{dragon.creationDate}</td>
               <td>{formatCave(dragon.cave)}</td>

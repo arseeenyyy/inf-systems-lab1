@@ -82,48 +82,20 @@ public class TeamService {
         }
         
         List<Person> teamMembers = personRepository.findByTeamId(id);
-        for (Person person : teamMembers) {
-            person.setTeam(null);
-            personRepository.update(person);
-        }
         
+        for (Person person : teamMembers) {
+            List<Dragon> killedDragons = dragonRepository.findByKillerId(person.getId());
+            for (Dragon dragon : killedDragons) {
+                dragon.setKiller(null); // обнуляем ссылку на убийцу
+                dragonRepository.update(dragon);
+            }
+        }
+        for (Person person : teamMembers) {
+            personRepository.delete(person.getId());
+        }
         teamRepository.delete(id);
     }
-    
-    // @Transactional
-    // public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto) {
-    //     Team team = teamRepository.findById(requestDto.getTeamId());
-    //     if (team == null) {
-    //         throw new NotFoundException("Team not found with id: " + requestDto.getTeamId());
-    //     }
-        
-    //     DragonCave cave = dragonCaveRepository.findById(requestDto.getCaveId());
-    //     if (cave == null) {
-    //         throw new NotFoundException("Cave not found with id: " + requestDto.getCaveId());
-    //     }
-        
-    //     List<Dragon> dragonsInCave = dragonRepository.findByCaveId(requestDto.getCaveId());
-    //     List<Person> teamMembers = personRepository.findByTeamId(requestDto.getTeamId());
-        
-    //     Long treasures = cave.getNumberOfTreasures();
-    //     int dragonsKilled = 0;
-        
-    //     if (!dragonsInCave.isEmpty() && !teamMembers.isEmpty()) {
-    //         Person randomKiller = teamMembers.get(0); 
-            
-    //         for (Dragon dragon : dragonsInCave) {
-    //             if (dragon.getKiller() == null) { 
-    //                 dragon.setKiller(randomKiller);
-    //                 dragonRepository.update(dragon);
-    //                 dragonsKilled++;
-    //             }
-    //         }
-    //         cave.setNumberOfTreasures(1L);
-    //         dragonCaveRepository.update(cave);            
-    //     }
-        
-    //     return new TeamToCaveResponseDto(treasures, dragonsKilled);
-    // }
+
     @Transactional
     public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto) {
         Team team = teamRepository.findById(requestDto.getTeamId());
