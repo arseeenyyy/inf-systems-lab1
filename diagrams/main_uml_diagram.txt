@@ -1,0 +1,214 @@
+@startuml
+package "Controller" {
+  class DragonController {
+    + getAll(): List<DragonResponseDto>
+    + getById(Long): DragonResponseDto
+    + create(DragonRequestDto): Response
+    + update(Long, DragonRequestDto): Response
+    + delete(Long): Response
+    + findByColor(String): List<DragonResponseDto>
+    + deleteAllByColor(String): Response
+    + deleteOneByColor(String): Response
+    + findByNameStartingWith(String): List<DragonResponseDto>
+  }
+  
+  class CoordinatesController {
+    + getAll(): List<CoordinatesResponseDto>
+    + getById(Long): CoordinatesResponseDto
+    + create(CoordinatesRequestDto): Response
+    + update(Long, CoordinatesRequestDto): Response
+    + delete(Long): Response
+  }
+  
+  class DragonCaveController {
+    + getAll(): List<DragonCaveResponseDto>
+    + getById(Long): DragonCaveResponseDto
+    + create(DragonCaveRequestDto): Response
+    + update(Long, DragonCaveRequestDto): Response
+    + delete(Long): Response
+  }
+  
+  class DragonHeadController {
+    + getAll(): List<DragonHeadResponseDto>
+    + getById(Long): DragonHeadResponseDto
+    + create(DragonHeadRequestDto): Response
+    + update(Long, DragonHeadRequestDto): Response
+    + delete(Long): Response
+  }
+  
+  class PersonController {
+    + getAll(): List<PersonResponseDto>
+    + getById(Long): PersonResponseDto
+    + create(PersonRequestDto): Response
+    + update(Long, PersonRequestDto): Response
+    + delete(Long): Response
+  }
+  
+  class TeamController {
+    + getAll(): List<TeamDto>
+    + getById(Long): Team
+    + create(TeamCreateRequestDto): Response
+    + delete(Long): Response
+    + sendTeamToCave(TeamToCaveRequestDto): Response
+    + addMembersToTeam(Long, List<Long>): Response
+    + removeMembersFromTeam(Long, List<Long>): Response
+  }
+}
+
+package "Service" {
+  class DragonService {
+    + getAll(): List<DragonResponseDto>
+    + getById(Long): DragonResponseDto
+    + create(DragonRequestDto): DragonResponseDto
+    + update(Long, DragonRequestDto): DragonResponseDto
+    + delete(Long): void
+    + findByColor(String): List<DragonResponseDto>
+    + deleteAllByColor(String): void
+    + deleteOneByColor(String): void
+    + findByNameStartingWith(String): List<DragonResponseDto>
+  }
+  
+  class CoordinatesService {
+    + getAll(): List<CoordinatesResponseDto>
+    + getById(Long): CoordinatesResponseDto
+    + create(CoordinatesRequestDto): CoordinatesResponseDto
+    + update(Long, CoordinatesRequestDto): CoordinatesResponseDto
+    + delete(Long): void
+    + count(): long
+  }
+  
+  class DragonCaveService {
+    + getAll(): List<DragonCaveResponseDto>
+    + getById(Long): DragonCaveResponseDto
+    + create(DragonCaveRequestDto): DragonCaveResponseDto
+    + update(Long, DragonCaveRequestDto): DragonCaveResponseDto
+    + delete(Long): void
+  }
+  
+  class DragonHeadService {
+    + getAll(): List<DragonHeadResponseDto>
+    + getById(Long): DragonHeadResponseDto
+    + create(DragonHeadRequestDto): DragonHeadResponseDto
+    + update(Long, DragonHeadRequestDto): DragonHeadResponseDto
+    + delete(Long): void
+  }
+  
+  class PersonService {
+    + getAll(): List<PersonResponseDto>
+    + getById(Long): PersonResponseDto
+    + create(PersonRequestDto): PersonResponseDto
+    + update(Long, PersonRequestDto): PersonResponseDto
+    + delete(Long): void
+  }
+  
+  class LocationService {
+    + getAllLocations(): List<LocationResponseDto>
+    + getLocationById(Long): LocationResponseDto
+    + createLocation(LocationRequestDto): LocationResponseDto
+    + updateLocation(Long, LocationRequestDto): LocationResponseDto
+    + deleteLocation(Long): void
+  }
+  
+  class TeamService {
+    + createTeam(TeamCreateRequestDto): TeamCreateResponseDto
+    + getAllTeams(): List<TeamDto>
+    + getTeamById(Long): Team
+    + deleteTeam(Long): void
+    + sendTeamToCave(TeamToCaveRequestDto): TeamToCaveResponseDto
+    + addMembersToTeam(Long, List<Long>): TeamCreateResponseDto
+    + removeMembersFromTeam(Long, List<Long>): TeamCreateResponseDto
+  }
+}
+
+package "Repository" {
+  interface DragonRepository {
+    + save(Dragon): Dragon
+    + findById(Long): Dragon
+    + findAll(): List<Dragon>
+    + update(Dragon): Dragon
+    + delete(Long): void
+    + findByColor(String): List<Dragon>
+    + findByNameStartingWith(String): List<Dragon>
+    + findByCaveId(Long): List<Dragon>
+    + findByHeadId(Long): List<Dragon>
+    + findByKillerId(Long): List<Dragon>
+  }
+  
+  interface CoordinatesRepository {
+    + save(Coordinates): Coordinates
+    + findById(Long): Coordinates
+    + findAll(): List<Coordinates>
+    + update(Coordinates): Coordinates
+    + delete(Long): void
+  }
+  
+  interface DragonCaveRepository {
+    + save(DragonCave): DragonCave
+    + findById(Long): DragonCave
+    + findAll(): List<DragonCave>
+    + update(DragonCave): DragonCave
+    + delete(Long): void
+  }
+  
+  interface DragonHeadRepository {
+    + save(DragonHead): DragonHead
+    + findById(Long): DragonHead
+    + findAll(): List<DragonHead>
+    + update(DragonHead): DragonHead
+    + delete(Long): void
+  }
+  
+  interface PersonRepository {
+    + save(Person): Person
+    + findById(Long): Person
+    + findAll(): List<Person>
+    + update(Person): Person
+    + delete(Long): void
+    + findByTeamId(Long): List<Person>
+  }
+  
+  interface LocationRepository {
+    + save(Location): Location
+    + findById(Long): Location
+    + findAll(): List<Location>
+    + update(Location): Location
+    + delete(Long): void
+  }
+  
+  interface TeamRepository {
+    + save(Team): Team
+    + findById(Long): Team
+    + findAll(): List<Team>
+    + update(Team): Team
+    + delete(Long): void
+    + existsByName(String): boolean
+    + findAllWithMembers(): List<TeamDto>
+  }
+}
+
+' Зависимости Controller -> Service
+DragonController --> DragonService
+CoordinatesController --> CoordinatesService
+DragonCaveController --> DragonCaveService
+DragonHeadController --> DragonHeadService
+PersonController --> PersonService
+TeamController --> TeamService
+
+' Зависимости Service -> Repository
+DragonService --> DragonRepository
+DragonService --> CoordinatesRepository
+DragonService --> PersonRepository
+DragonService --> DragonCaveRepository
+DragonService --> DragonHeadRepository
+
+CoordinatesService --> CoordinatesRepository
+DragonCaveService --> DragonCaveRepository
+DragonHeadService --> DragonHeadRepository
+PersonService --> PersonRepository
+PersonService --> LocationRepository
+LocationService --> LocationRepository
+TeamService --> TeamRepository
+TeamService --> PersonRepository
+TeamService --> DragonCaveRepository
+TeamService --> DragonRepository
+@enduml

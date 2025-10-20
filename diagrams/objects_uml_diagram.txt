@@ -1,0 +1,227 @@
+@startuml
+package "Models" {
+  class Dragon {
+    - Long id
+    - String name
+    - Coordinates coordinates
+    - LocalDate creationDate
+    - DragonCave cave
+    - Person killer
+    - Integer age
+    - Double weight
+    - String color
+    - String character
+    - DragonHead head
+  }
+  
+  class Coordinates {
+    - Long id
+    - Double x
+    - Double y
+  }
+  
+  class DragonCave {
+    - Long id
+    - Long numberOfTreasures
+  }
+  
+  class DragonHead {
+    - Long id
+    - Double size
+    - Long eyesCount
+  }
+  
+  class Person {
+    - Long id
+    - String name
+    - String eyeColor
+    - String hairColor
+    - Double height
+    - String nationality
+    - Location location
+    - Team team
+  }
+  
+  class Location {
+    - Long id
+    - Double x
+    - Double y
+    - Double z
+    - String name
+  }
+  
+  class Team {
+    - Long id
+    - String name
+  }
+}
+
+package "Mapper" {
+  class DragonMapper {
+    + toEntity(DragonRequestDto, Coordinates, DragonCave, Person, DragonHead): Dragon
+    + toResponseDto(Dragon): DragonResponseDto
+  }
+  
+  class CoordinatesMapper {
+    + toEntity(CoordinatesRequestDto): Coordinates
+    + toResponseDto(Coordinates): CoordinatesResponseDto
+  }
+  
+  class DragonCaveMapper {
+    + toEntity(DragonCaveRequestDto): DragonCave
+    + toResponseDto(DragonCave): DragonCaveResponseDto
+  }
+  
+  class DragonHeadMapper {
+    + toEntity(DragonHeadRequestDto): DragonHead
+    + toResponseDto(DragonHead): DragonHeadResponseDto
+  }
+  
+  class PersonMapper {
+    + toEntity(PersonRequestDto, Location): Person
+    + toResponseDto(Person): PersonResponseDto
+  }
+  
+  class LocationMapper {
+    + toEntity(LocationRequestDto): Location
+    + toResponseDto(Location): LocationResponseDto
+  }
+}
+
+package "DTO" {
+  class DragonRequestDto {
+    - String name
+    - Long coordinatesId
+    - Integer age
+    - Double weight
+    - String color
+    - String character
+    - Long caveId
+    - Long killerId
+    - Long headId
+  }
+
+  class DragonResponseDto {
+    - Long id
+    - String name
+    - String creationDate
+    - Integer age
+    - Double weight
+    - String color
+    - String character
+    - CoordinatesResponseDto coordinates
+    - DragonCaveResponseDto cave
+    - PersonResponseDto killer
+    - DragonHeadResponseDto head
+  }
+  
+  class CoordinatesRequestDto {
+    - Double x
+    - Double y
+  }
+  
+  class CoordinatesResponseDto {
+    - Long id
+    - Double x
+    - Double y
+  }
+  
+  class DragonCaveRequestDto {
+    - Long numberOfTreasures
+  }
+  
+  class DragonCaveResponseDto {
+    - Long id
+    - Long numberOfTreasures
+  }
+  
+  class DragonHeadRequestDto {
+    - Double size
+    - Long eyesCount
+  }
+  
+  class DragonHeadResponseDto {
+    - Long id
+    - Double size
+    - Long eyesCount
+  }
+  
+  class PersonRequestDto {
+    - String name
+    - String eyeColor
+    - String hairColor
+    - Double height
+    - String nationality
+    - Long locationId
+  }
+  
+  class PersonResponseDto {
+    - Long id
+    - String name
+    - String eyeColor
+    - String hairColor
+    - Double height
+    - String nationality
+    - LocationResponseDto location
+    - Team team
+  }
+  
+  class LocationRequestDto {
+    - Double x
+    - Double y
+    - Double z
+    - String name
+  }
+  
+  class LocationResponseDto {
+    - Long id
+    - Double x
+    - Double y
+    - Double z
+    - String name
+  }
+}
+
+package "Filter" {
+  class CORSFilter {
+    + filter(ContainerRequestContext, ContainerResponseContext): void
+  }
+}
+
+' Зависимости Model -> Model
+Dragon --> Coordinates
+Dragon --> DragonCave
+Dragon --> Person
+Dragon --> DragonHead
+Person --> Location
+Person --> Team
+
+' Зависимости Mapper -> Model
+DragonMapper --> Dragon
+CoordinatesMapper --> Coordinates
+DragonCaveMapper --> DragonCave
+DragonHeadMapper --> DragonHead
+PersonMapper --> Person
+LocationMapper --> Location
+
+' Зависимости Mapper -> DTO
+DragonMapper --> DragonRequestDto
+DragonMapper --> DragonResponseDto
+CoordinatesMapper --> CoordinatesRequestDto
+CoordinatesMapper --> CoordinatesResponseDto
+DragonCaveMapper --> DragonCaveRequestDto
+DragonCaveMapper --> DragonCaveResponseDto
+DragonHeadMapper --> DragonHeadRequestDto
+DragonHeadMapper --> DragonHeadResponseDto
+PersonMapper --> PersonRequestDto
+PersonMapper --> PersonResponseDto
+LocationMapper --> LocationRequestDto
+LocationMapper --> LocationResponseDto
+
+' Зависимости DTO -> DTO
+DragonResponseDto --> CoordinatesResponseDto
+DragonResponseDto --> DragonCaveResponseDto
+DragonResponseDto --> PersonResponseDto
+DragonResponseDto --> DragonHeadResponseDto
+PersonResponseDto --> LocationResponseDto
+@enduml
