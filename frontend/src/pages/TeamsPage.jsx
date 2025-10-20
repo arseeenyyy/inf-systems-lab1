@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
+import CreateTeamForm from '../components/CreateTeamForm';
+import SendToCaveForm from '../components/SendToCaveForm';
+import SelectedTeamPanel from '../components/SelectedTeamPanel';
+import DragonOperationsPanel from '../components/DragonOperationsPanel';
+import TeamsTable from '../components/TeamsTable';
 
 const TeamsPage = () => {
   const [teams, setTeams] = useState([]);
@@ -9,9 +14,15 @@ const TeamsPage = () => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [createFormData, setCreateFormData] = useState({ name: '', personsIds: [] });
   const [sendFormData, setSendFormData] = useState({ teamId: '', caveId: '' });
-  const [dragonOperations, setDragonOperations] = useState({ color: '', substring: '', searchResults: [] });
+  const [dragonOperations, setDragonOperations] = useState({ 
+    color: '', 
+    substring: '', 
+    searchResults: [] 
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const availableColors = ['GREEN', 'BLUE', 'YELLOW'];
 
   useEffect(() => {
     loadAllData();
@@ -59,7 +70,7 @@ const TeamsPage = () => {
       await loadAllData();
       setDragonOperations(prev => ({ ...prev, color: '' }));
     } catch (error) {
-      console.error('Failed to delete dragons by color:', error);
+      console.error('Failed to delete dragons by color:', error.message);
     }
   };
 
@@ -70,7 +81,7 @@ const TeamsPage = () => {
       await loadAllData();
       setDragonOperations(prev => ({ ...prev, color: '' }));
     } catch (error) {
-      console.error('Failed to delete one dragon by color:', error);
+      console.error('Failed to delete one dragon by color:', error.message);
     }
   };
 
@@ -117,7 +128,7 @@ const TeamsPage = () => {
     setLoading(true);
 
     try {
-      const result = await apiClient.createTeam(createFormData);
+      await apiClient.createTeam(createFormData);
       setCreateFormData({ name: '', personsIds: [] });
       await loadAllData();
     } catch (error) {
@@ -147,175 +158,37 @@ const TeamsPage = () => {
   return (
     <div className="layout">
       <div className="sidebar">
-        <div className="panel">
-          <div className="panel-title">[create_team]</div>
-          <form onSubmit={handleCreateSubmit} className="form" noValidate>
-            <div className="form-group">
-              <label className="form-label">name</label>
-              <input
-                type="text"
-                name="name"
-                value={createFormData.name}
-                onChange={handleCreateChange}
-                className={`form-input ${errors.name ? 'error' : ''}`}
-              />
-              {errors.name && <span className="error-text">name: {errors.name}</span>}
-            </div>
-            <div className="form-group">
-              <label className="form-label">members</label>
-              <div className="checkbox-container">
-                {availablePersons.length > 0 ? (
-                  availablePersons.map(person => (
-                    <div key={person.id} className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        id={`person-${person.id}`}
-                        checked={createFormData.personsIds.includes(person.id)}
-                        onChange={() => handleCheckboxChange(person.id)}
-                      />
-                      <label htmlFor={`person-${person.id}`}>
-                        {person.name}
-                      </label>
-                    </div>
-                  ))
-                ) : (
-                  <p className="no-data">No available persons</p>
-                )}
-              </div>
-              {errors.personsIds && <span className="error-text">members: {errors.personsIds}</span>}
-            </div>
-            {errors.submit && <div className="error-text">{errors.submit}</div>}
-            <div className="actions">
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                [{loading ? 'creating...' : 'create'}]
-              </button>
-            </div>
-          </form>
-        </div>
+        <CreateTeamForm
+          createFormData={createFormData}
+          availablePersons={availablePersons}
+          errors={errors}
+          loading={loading}
+          onCreateChange={handleCreateChange}
+          onCheckboxChange={handleCheckboxChange}
+          onSubmit={handleCreateSubmit}
+        />
 
-        <div className="panel">
-          <div className="panel-title">[send_to_cave]</div>
-          <form onSubmit={handleSendSubmit} className="form">
-            <div className="form-group">
-              <label className="form-label">team</label>
-              <select name="teamId" value={sendFormData.teamId} onChange={handleSendChange} className="form-select">
-                <option value="">Select team</option>
-                {teams.map(team => (
-                  <option key={team.id} value={team.id}>
-                    {team.id}; {team.name} ({team.memberCount} members)
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">cave</label>
-              <select name="caveId" value={sendFormData.caveId} onChange={handleSendChange} className="form-select">
-                <option value="">Select cave</option>
-                {caves.map(cave => (
-                  <option key={cave.id} value={cave.id}>
-                    {cave.id}; treasures: {cave.numberOfTreasures || '?'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="actions">
-              <button type="submit" className="btn btn-primary">[send to cave]</button>
-            </div>
-          </form>
-        </div>
+        <SendToCaveForm
+          sendFormData={sendFormData}
+          teams={teams}
+          caves={caves}
+          onSendChange={handleSendChange}
+          onSubmit={handleSendSubmit}
+        />
 
-        <div className="panel">
-          <div className="panel-title">[selected_team_data]</div>
-          {selectedTeam ? (
-            <div>
-              <div className="json-view">
-                <pre>{JSON.stringify({
-                  id: selectedTeam.id,
-                  name: selectedTeam.name,
-                  members_count: selectedTeam.memberCount,
-                  members: selectedTeam.members || []
-                }, null, 2)}</pre>
-              </div>
-              <div className="actions">
-                <button 
-                  onClick={() => handleDeleteTeam(selectedTeam.id)}
-                  className="btn btn-danger"
-                >
-                  [delete]
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="no-selection">NO_SELECTION</div>
-          )}
-        </div>
+        <SelectedTeamPanel
+          selectedTeam={selectedTeam}
+          onDeleteTeam={handleDeleteTeam}
+        />
 
-        <div className="panel">
-          <div className="panel-title">[dragon_operations]</div>
-          <div className="form">
-            <div className="form-group">
-              <label className="form-label">color</label>
-              <input
-                type="text"
-                name="color"
-                value={dragonOperations.color}
-                onChange={handleDragonOperationChange}
-                className="form-input"
-                placeholder="Enter color"
-              />
-              <div className="actions">
-                <button 
-                  onClick={handleDeleteAllByColor} 
-                  className="btn btn-danger"
-                  disabled={!dragonOperations.color}
-                >
-                  [delete all by color]
-                </button>
-                <button 
-                  onClick={handleDeleteOneByColor} 
-                  className="btn btn-danger"
-                  disabled={!dragonOperations.color}
-                >
-                  [delete one by color]
-                </button>
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">name substring</label>
-              <input
-                type="text"
-                name="substring"
-                value={dragonOperations.substring}
-                onChange={handleDragonOperationChange}
-                className="form-input"
-                placeholder="Enter name substring"
-              />
-              <div className="actions">
-                <button 
-                  onClick={handleSearchByName} 
-                  className="btn btn-primary"
-                  disabled={!dragonOperations.substring}
-                >
-                  [search by name]
-                </button>
-              </div>
-            </div>
-            {dragonOperations.searchResults.length > 0 && (
-              <div className="search-results">
-                <div className="results-count">
-                  Found: {dragonOperations.searchResults.length} dragons
-                </div>
-                <div className="results-list">
-                  {dragonOperations.searchResults.map(dragon => (
-                    <div key={dragon.id} className="result-item">
-                      {dragon.id}: {dragon.name} ({dragon.color})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <DragonOperationsPanel
+          dragonOperations={dragonOperations}
+          availableColors={availableColors}
+          onOperationChange={handleDragonOperationChange}
+          onDeleteAllByColor={handleDeleteAllByColor}
+          onDeleteOneByColor={handleDeleteOneByColor}
+          onSearchByName={handleSearchByName}
+        />
       </div>
 
       <div className="main">
@@ -323,34 +196,11 @@ const TeamsPage = () => {
           [total treasures: {totalTreasures}]
         </div>
 
-        <div className="panel">
-          <div className="panel-title">[teams_table]</div>
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Members Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teams.map(team => (
-                  <tr 
-                    key={team.id}
-                    className={selectedTeam?.id === team.id ? 'selected' : ''}
-                    onClick={() => setSelectedTeam(team)}
-                  >
-                    <td>{team.id}</td>
-                    <td>{team.name}</td>
-                    <td>{team.memberCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {teams.length === 0 && <div className="no-selection">no_teams_found</div>}
-          </div>
-        </div>
+        <TeamsTable
+          teams={teams}
+          selectedTeam={selectedTeam}
+          onSelectTeam={setSelectedTeam}
+        />
       </div>
     </div>
   );
