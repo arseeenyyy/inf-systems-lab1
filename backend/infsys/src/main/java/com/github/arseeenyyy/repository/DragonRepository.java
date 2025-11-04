@@ -14,7 +14,6 @@ public class DragonRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Transactional 
     public Dragon save(Dragon dragon) {
         entityManager.persist(dragon); 
         return dragon;
@@ -29,7 +28,6 @@ public class DragonRepository {
         return entityManager.find(Dragon.class, id);
     }
 
-    @Transactional 
     public void delete(Long id) {
         Dragon dragon = entityManager.find(Dragon.class, id);
         if (dragon != null) {
@@ -37,7 +35,6 @@ public class DragonRepository {
         }
     }
 
-    @Transactional
     public Dragon update(Dragon dragon) {
         return entityManager.merge(dragon);
     }

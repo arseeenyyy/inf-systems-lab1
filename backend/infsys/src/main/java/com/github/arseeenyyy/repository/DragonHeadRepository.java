@@ -13,7 +13,6 @@ public class DragonHeadRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Transactional 
     public DragonHead save(DragonHead head) {
         entityManager.persist(head); 
         return head;
@@ -32,7 +31,6 @@ public class DragonHeadRepository {
     }
 
 
-    @Transactional 
     public void delete(Long id) {
         DragonHead head = entityManager.find(DragonHead.class, id);
         if (head != null) {
@@ -40,7 +38,6 @@ public class DragonHeadRepository {
         }
     }
 
-    @Transactional
     public DragonHead update(DragonHead head) {
         return entityManager.merge(head);
     }

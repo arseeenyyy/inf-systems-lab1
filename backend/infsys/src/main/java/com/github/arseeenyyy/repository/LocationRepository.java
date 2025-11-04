@@ -13,7 +13,6 @@ public class LocationRepository {
     @PersistenceContext
     private EntityManager entityManager;
     
-    @Transactional
     public Location save(Location location) {
         entityManager.persist(location);
         return location;
@@ -33,7 +32,6 @@ public class LocationRepository {
     }
     
 
-    @Transactional
     public void delete(Long id) {
         Location location = entityManager.find(Location.class, id);
         if (location != null) {
@@ -41,7 +39,6 @@ public class LocationRepository {
         }
     }
     
-    @Transactional
     public Location update(Location location) {
         return entityManager.merge(location);
     }

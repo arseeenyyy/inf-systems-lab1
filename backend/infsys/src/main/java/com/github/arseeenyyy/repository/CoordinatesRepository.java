@@ -16,7 +16,6 @@ public class CoordinatesRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Transactional 
     public Coordinates save(Coordinates coordinates) {
         entityManager.persist(coordinates); 
         return coordinates;
@@ -34,7 +33,6 @@ public class CoordinatesRepository {
         return entityManager.find(Coordinates.class, id);
     }
 
-    @Transactional 
     public void delete(Long id) {
         Coordinates coordinates = entityManager.find(Coordinates.class, id);
         if (coordinates != null) {
@@ -42,7 +40,6 @@ public class CoordinatesRepository {
         }
     }
 
-    @Transactional
     public Coordinates update(Coordinates coordinates) {
         return entityManager.merge(coordinates);
     }

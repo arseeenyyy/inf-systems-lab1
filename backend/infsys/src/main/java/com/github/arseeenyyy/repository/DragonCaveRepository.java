@@ -13,7 +13,6 @@ public class DragonCaveRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Transactional 
     public DragonCave save(DragonCave cave) {
         entityManager.persist(cave); 
         return cave;
@@ -30,7 +29,6 @@ public class DragonCaveRepository {
         }
         return entityManager.find(DragonCave.class, id);
     }
-    @Transactional 
     public void delete(Long id) {
         DragonCave cave = entityManager.find(DragonCave.class, id);
         if (cave != null) {
@@ -38,7 +36,6 @@ public class DragonCaveRepository {
         }
     }
 
-    @Transactional
     public DragonCave update(DragonCave cave) {
         return entityManager.merge(cave);
     }

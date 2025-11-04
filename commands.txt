@@ -1,0 +1,4 @@
+ssh -p 2222 s413052@se.ifmo.ru -Y -L35660:helios:35660
+ssh -p 2222 s413052@se.ifmo.ru -Y -L35661:helios:35661
+unset _JAVA_OPTIONS
+export _JAVA_OPTIONS="-Xms512m -Xmx1024m -XX:MetaspaceSize=512m -XX:MaxMetaspaceSize=1024m"

@@ -11,7 +11,7 @@ class ApiClient {
   }
 
   async getDragons() { return this.request('/dragons'); }
-  async createDragon(data) { return this.request('/dragons', { method: 'POST', body: JSON.stringify(data) }); }
+  asycreateDragon(data) { return this.request('/dragons', { method: 'POST', body: JSON.stringify(data) }); }
   async updateDragon(id, data) { return this.request(`/dragons/${id}`, { method: 'PUT', body: JSON.stringify(data) }); }
   async deleteDragon(id) { return this.request(`/dragons/${id}`, { method: 'DELETE' }); }
   async deleteAllByColor(color) {

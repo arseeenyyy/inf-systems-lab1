@@ -10,7 +10,6 @@ const TeamsPage = () => {
   const [teams, setTeams] = useState([]);
   const [persons, setPersons] = useState([]);
   const [caves, setCaves] = useState([]);
-  const [totalTreasures, setTotalTreasures] = useState(0); 
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [createFormData, setCreateFormData] = useState({ name: '', personsIds: [] });
   const [sendFormData, setSendFormData] = useState({ teamId: '', caveId: '' });
@@ -39,8 +38,7 @@ const TeamsPage = () => {
       setPersons(personsData);
       setCaves(cavesData);
       
-      const total = cavesData.reduce((sum, cave) => sum + (cave.numberOfTreasures || 0), 0);
-      setTotalTreasures(total);
+ 
     } catch (error) {
       console.error('Failed to load data:', error);
     }
@@ -192,9 +190,7 @@ const TeamsPage = () => {
       </div>
 
       <div className="main">
-        <div className="treasures-info">
-          [total treasures: {totalTreasures}]
-        </div>
+
 
         <TeamsTable
           teams={teams}

@@ -18,7 +18,6 @@ public class TeamRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Transactional
     public Team save(Team team) {
         entityManager.persist(team);
         return team;
@@ -48,7 +47,6 @@ public class TeamRepository {
         return entityManager.find(Team.class, id);
     }
 
-    @Transactional
     public void delete(Long id) {
         Team team = entityManager.find(Team.class, id);
         if (team != null) {
@@ -56,7 +54,6 @@ public class TeamRepository {
         }
     }
 
-    @Transactional
     public Team update(Team team) {
         return entityManager.merge(team);
     }

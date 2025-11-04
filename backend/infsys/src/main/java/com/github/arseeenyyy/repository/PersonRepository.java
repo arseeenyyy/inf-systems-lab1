@@ -13,7 +13,6 @@ public class PersonRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Transactional 
     public Person save(Person person) {
         entityManager.persist(person); 
         return person;
@@ -31,7 +30,6 @@ public class PersonRepository {
         return entityManager.find(Person.class, id);
     }
 
-    @Transactional 
     public void delete(Long id) {
         Person person = entityManager.find(Person.class, id);
         if (person != null) {
@@ -39,7 +37,6 @@ public class PersonRepository {
         }
     }
 
-    @Transactional
     public Person update(Person person) {
         return entityManager.merge(person);
     }
