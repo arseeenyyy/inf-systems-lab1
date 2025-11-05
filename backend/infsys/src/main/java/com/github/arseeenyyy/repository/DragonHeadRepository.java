@@ -2,9 +2,10 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.DragonHead;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.util.List;
 
 @ApplicationScoped 
@@ -13,9 +14,23 @@ public class DragonHeadRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
+    @Inject
+    private UserTransaction userTransaction;
+
     public DragonHead save(DragonHead head) {
-        entityManager.persist(head); 
-        return head;
+        try {
+            userTransaction.begin();
+            entityManager.persist(head);
+            userTransaction.commit();
+            return head;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Save failed", e);
+        }
     } 
 
     public List<DragonHead> findAll() {
@@ -30,15 +45,37 @@ public class DragonHeadRepository {
         return entityManager.find(DragonHead.class, id);
     }
 
-
     public void delete(Long id) {
-        DragonHead head = entityManager.find(DragonHead.class, id);
-        if (head != null) {
-            entityManager.remove(head);
+        try {
+            userTransaction.begin();
+            DragonHead head = entityManager.find(DragonHead.class, id);
+            if (head != null) {
+                entityManager.remove(head);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Delete failed", e);
         }
     }
 
     public DragonHead update(DragonHead head) {
-        return entityManager.merge(head);
+        try {
+            userTransaction.begin();
+            DragonHead merged = entityManager.merge(head);
+            userTransaction.commit();
+            return merged;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Update failed", e);
+        }
     }
 }

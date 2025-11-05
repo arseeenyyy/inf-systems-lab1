@@ -2,9 +2,10 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.DragonCave;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.util.List;
 
 @ApplicationScoped 
@@ -13,9 +14,23 @@ public class DragonCaveRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
+    @Inject
+    private UserTransaction userTransaction;
+
     public DragonCave save(DragonCave cave) {
-        entityManager.persist(cave); 
-        return cave;
+        try {
+            userTransaction.begin();
+            entityManager.persist(cave);
+            userTransaction.commit();
+            return cave;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Save failed", e);
+        }
     } 
 
     public List<DragonCave> findAll() {
@@ -29,14 +44,38 @@ public class DragonCaveRepository {
         }
         return entityManager.find(DragonCave.class, id);
     }
+
     public void delete(Long id) {
-        DragonCave cave = entityManager.find(DragonCave.class, id);
-        if (cave != null) {
-            entityManager.remove(cave);
+        try {
+            userTransaction.begin();
+            DragonCave cave = entityManager.find(DragonCave.class, id);
+            if (cave != null) {
+                entityManager.remove(cave);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Delete failed", e);
         }
     }
 
     public DragonCave update(DragonCave cave) {
-        return entityManager.merge(cave);
+        try {
+            userTransaction.begin();
+            DragonCave merged = entityManager.merge(cave);
+            userTransaction.commit();
+            return merged;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Update failed", e);
+        }
     }
 }
