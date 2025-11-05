@@ -2,9 +2,10 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.Person;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.util.List;
 
 @ApplicationScoped 
@@ -13,15 +14,29 @@ public class PersonRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
+    @Inject
+    private UserTransaction userTransaction;
+
     public Person save(Person person) {
-        entityManager.persist(person); 
-        return person;
-    } 
+        try {
+            userTransaction.begin();
+            entityManager.persist(person);
+            userTransaction.commit();
+            return person;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Save failed", e);
+        }
+    }
+
     public List<Person> findAll() {
         return entityManager.createQuery("SELECT p FROM Person p", Person.class)
             .getResultList();
     }
-
 
     public Person findById(Long id) {
         if (id == null) {
@@ -31,14 +46,37 @@ public class PersonRepository {
     }
 
     public void delete(Long id) {
-        Person person = entityManager.find(Person.class, id);
-        if (person != null) {
-            entityManager.remove(person);
+        try {
+            userTransaction.begin();
+            Person person = entityManager.find(Person.class, id);
+            if (person != null) {
+                entityManager.remove(person);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Delete failed", e);
         }
     }
 
     public Person update(Person person) {
-        return entityManager.merge(person);
+        try {
+            userTransaction.begin();
+            Person merged = entityManager.merge(person);
+            userTransaction.commit();
+            return merged;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException("Rollback failed", ex);
+            }
+            throw new RuntimeException("Update failed", e);
+        }
     }
 
     public List<Person> findByTeamId(Long teamId) {
