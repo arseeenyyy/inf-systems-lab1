@@ -12,7 +12,6 @@ public class UserMapper {
     public static User toEntity(UserRequestDto requestDto) {
         User user = new User();
         user.setUsername(requestDto.getUsername()); 
-        user.setPassword(requestDto.getPassword()); 
         user.setRole(requestDto.getRole());
         return user;
     }
@@ -21,7 +20,6 @@ public class UserMapper {
         return new UserResponseDto(
             user.getId(),
             user.getUsername(), 
-            user.getPassword(),
             user.getRole()
         );
     }

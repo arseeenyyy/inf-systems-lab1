@@ -19,9 +19,21 @@ public class UserService {
     
     @Inject
     private UserRepository repository;
+
+    @Inject
+    private PasswordService passwordService;
         
+    @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
+        User existingUser = repository.findByUsername(requestDto.getUsername());
+        if (existingUser != null) {
+            throw new RuntimeException("User with username '" + requestDto.getUsername() + "' already exists");
+        }
+
         User user = UserMapper.toEntity(requestDto);
+        String hashedPassword = passwordService.hashPassword(requestDto.getPassword());
+        user.setPassword(hashedPassword);
+        
         User savedUser = repository.save(user);
         return UserMapper.toResponseDto(savedUser);
     }
@@ -41,6 +53,7 @@ public class UserService {
         return UserMapper.toResponseDto(user);
     }
 
+    @Transactional
     public void delete(Long id) {
         repository.delete(id);
     }
@@ -50,11 +63,20 @@ public class UserService {
         User existingUser = repository.findById(id);
         if (existingUser == null) {
             throw new NotFoundException("User not found with id: " + id);
-        }
-        existingUser.setUsername(requestDto.getUsername());
-        existingUser.setPassword(requestDto.getPassword());
-        existingUser.setRole(requestDto.getRole());
+        }        
         
+        if (!existingUser.getUsername().equals(requestDto.getUsername())) {
+            User userWithSameUsername = repository.findByUsername(requestDto.getUsername());
+            if (userWithSameUsername != null && !userWithSameUsername.getId().equals(id)) {
+                throw new RuntimeException("User with username '" + requestDto.getUsername() + "' already exists");
+            }
+            existingUser.setUsername(requestDto.getUsername());
+        }
+        existingUser.setRole(requestDto.getRole());        
+        if (requestDto.getPassword() != null && !requestDto.getPassword().trim().isEmpty()) {
+            String hashedPassword = passwordService.hashPassword(requestDto.getPassword());
+            existingUser.setPassword(hashedPassword);
+        }
         User updatedUser = repository.update(existingUser);
         return UserMapper.toResponseDto(updatedUser);
     }
