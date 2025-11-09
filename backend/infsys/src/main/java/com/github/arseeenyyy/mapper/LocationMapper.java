@@ -1,8 +1,9 @@
 package com.github.arseeenyyy.mapper;
 
-import com.github.arseeenyyy.dto.LocationRequestDto;
-import com.github.arseeenyyy.dto.LocationResponseDto;
+import com.github.arseeenyyy.dto.location.LocationRequestDto;
+import com.github.arseeenyyy.dto.location.LocationResponseDto;
 import com.github.arseeenyyy.models.Location;
+
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped

@@ -1,17 +1,18 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.DragonCaveRequestDto;
-import com.github.arseeenyyy.dto.DragonCaveResponseDto;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.dragonCave.DragonCaveRequestDto;
+import com.github.arseeenyyy.dto.dragonCave.DragonCaveResponseDto;
 import com.github.arseeenyyy.mapper.DragonCaveMapper;
 import com.github.arseeenyyy.models.DragonCave;
 import com.github.arseeenyyy.repository.DragonCaveRepository;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class DragonCaveService {

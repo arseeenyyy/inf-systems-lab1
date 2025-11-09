@@ -1,6 +1,15 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.person.PersonResponseDto;
+import com.github.arseeenyyy.dto.team.TeamCreateRequestDto;
+import com.github.arseeenyyy.dto.team.TeamCreateResponseDto;
+import com.github.arseeenyyy.dto.team.TeamDto;
+import com.github.arseeenyyy.dto.team.TeamToCaveRequestDto;
+import com.github.arseeenyyy.dto.team.TeamToCaveResponseDto;
 import com.github.arseeenyyy.mapper.PersonMapper;
 import com.github.arseeenyyy.models.Dragon;
 import com.github.arseeenyyy.models.DragonCave;
@@ -10,14 +19,11 @@ import com.github.arseeenyyy.repository.DragonCaveRepository;
 import com.github.arseeenyyy.repository.DragonRepository;
 import com.github.arseeenyyy.repository.PersonRepository;
 import com.github.arseeenyyy.repository.TeamRepository;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class TeamService {

@@ -1,7 +1,10 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.DragonRequestDto;
-import com.github.arseeenyyy.dto.DragonResponseDto;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.dragon.DragonRequestDto;
+import com.github.arseeenyyy.dto.dragon.DragonResponseDto;
 import com.github.arseeenyyy.mapper.DragonMapper;
 import com.github.arseeenyyy.models.Coordinates;
 import com.github.arseeenyyy.models.Dragon;
@@ -18,9 +21,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class DragonService {

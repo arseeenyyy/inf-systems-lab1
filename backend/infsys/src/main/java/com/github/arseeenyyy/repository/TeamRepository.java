@@ -1,17 +1,19 @@
 package com.github.arseeenyyy.repository;
 
-import com.github.arseeenyyy.dto.PersonResponseDto;
-import com.github.arseeenyyy.dto.TeamDto;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.person.PersonResponseDto;
+import com.github.arseeenyyy.dto.team.TeamDto;
 import com.github.arseeenyyy.mapper.PersonMapper;
 import com.github.arseeenyyy.models.Person;
 import com.github.arseeenyyy.models.Team;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.UserTransaction;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class TeamRepository {

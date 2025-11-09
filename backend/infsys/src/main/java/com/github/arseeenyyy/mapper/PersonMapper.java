@@ -1,7 +1,7 @@
 package com.github.arseeenyyy.mapper;
 
-import com.github.arseeenyyy.dto.PersonRequestDto;
-import com.github.arseeenyyy.dto.PersonResponseDto;
+import com.github.arseeenyyy.dto.person.PersonRequestDto;
+import com.github.arseeenyyy.dto.person.PersonResponseDto;
 import com.github.arseeenyyy.models.Location;
 import com.github.arseeenyyy.models.Person;
 

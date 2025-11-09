@@ -1,7 +1,7 @@
 package com.github.arseeenyyy.mapper;
 
-import com.github.arseeenyyy.dto.CoordinatesRequestDto;
-import com.github.arseeenyyy.dto.CoordinatesResponseDto;
+import com.github.arseeenyyy.dto.coordinates.CoordinatesRequestDto;
+import com.github.arseeenyyy.dto.coordinates.CoordinatesResponseDto;
 import com.github.arseeenyyy.models.Coordinates;
 
 import jakarta.enterprise.context.ApplicationScoped;

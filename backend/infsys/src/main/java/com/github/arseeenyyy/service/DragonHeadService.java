@@ -1,17 +1,18 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.DragonHeadRequestDto;
-import com.github.arseeenyyy.dto.DragonHeadResponseDto;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.dragonHead.DragonHeadRequestDto;
+import com.github.arseeenyyy.dto.dragonHead.DragonHeadResponseDto;
 import com.github.arseeenyyy.mapper.DragonHeadMapper;
 import com.github.arseeenyyy.models.DragonHead;
 import com.github.arseeenyyy.repository.DragonHeadRepository;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class DragonHeadService {

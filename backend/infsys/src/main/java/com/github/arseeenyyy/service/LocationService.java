@@ -1,17 +1,18 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.LocationRequestDto;
-import com.github.arseeenyyy.dto.LocationResponseDto;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.location.LocationRequestDto;
+import com.github.arseeenyyy.dto.location.LocationResponseDto;
 import com.github.arseeenyyy.mapper.LocationMapper;
 import com.github.arseeenyyy.models.Location;
 import com.github.arseeenyyy.repository.LocationRepository;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class LocationService {

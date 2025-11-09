@@ -3,11 +3,12 @@ package com.github.arseeenyyy.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.github.arseeenyyy.dto.CoordinatesRequestDto;
-import com.github.arseeenyyy.dto.CoordinatesResponseDto;
+import com.github.arseeenyyy.dto.coordinates.CoordinatesRequestDto;
+import com.github.arseeenyyy.dto.coordinates.CoordinatesResponseDto;
 import com.github.arseeenyyy.mapper.CoordinatesMapper;
 import com.github.arseeenyyy.models.Coordinates;
 import com.github.arseeenyyy.repository.CoordinatesRepository;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;

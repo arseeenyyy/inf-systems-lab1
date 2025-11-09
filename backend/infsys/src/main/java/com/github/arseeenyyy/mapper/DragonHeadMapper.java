@@ -1,7 +1,7 @@
 package com.github.arseeenyyy.mapper;
 
-import com.github.arseeenyyy.dto.DragonHeadRequestDto;
-import com.github.arseeenyyy.dto.DragonHeadResponseDto;
+import com.github.arseeenyyy.dto.dragonHead.DragonHeadRequestDto;
+import com.github.arseeenyyy.dto.dragonHead.DragonHeadResponseDto;
 import com.github.arseeenyyy.models.DragonHead;
 
 import jakarta.enterprise.context.ApplicationScoped;

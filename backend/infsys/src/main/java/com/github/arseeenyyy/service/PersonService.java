@@ -1,19 +1,20 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.PersonRequestDto;
-import com.github.arseeenyyy.dto.PersonResponseDto;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.person.PersonRequestDto;
+import com.github.arseeenyyy.dto.person.PersonResponseDto;
 import com.github.arseeenyyy.mapper.PersonMapper;
 import com.github.arseeenyyy.models.Location;
 import com.github.arseeenyyy.models.Person;
 import com.github.arseeenyyy.repository.LocationRepository;
 import com.github.arseeenyyy.repository.PersonRepository;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class PersonService {

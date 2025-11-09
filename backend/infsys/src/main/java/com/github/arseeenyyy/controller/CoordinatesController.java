@@ -2,12 +2,18 @@ package com.github.arseeenyyy.controller;
 
 import java.util.List;
 
-import com.github.arseeenyyy.dto.CoordinatesRequestDto;
-import com.github.arseeenyyy.dto.CoordinatesResponseDto;
+import com.github.arseeenyyy.dto.coordinates.CoordinatesRequestDto;
+import com.github.arseeenyyy.dto.coordinates.CoordinatesResponseDto;
 import com.github.arseeenyyy.service.CoordinatesService;
+
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 

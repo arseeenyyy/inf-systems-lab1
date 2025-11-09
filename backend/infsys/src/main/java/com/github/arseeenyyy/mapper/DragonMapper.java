@@ -1,7 +1,7 @@
 package com.github.arseeenyyy.mapper;
 
-import com.github.arseeenyyy.dto.DragonRequestDto;
-import com.github.arseeenyyy.dto.DragonResponseDto;
+import com.github.arseeenyyy.dto.dragon.DragonRequestDto;
+import com.github.arseeenyyy.dto.dragon.DragonResponseDto;
 import com.github.arseeenyyy.models.Coordinates;
 import com.github.arseeenyyy.models.Dragon;
 import com.github.arseeenyyy.models.DragonCave;

@@ -1,15 +1,23 @@
 package com.github.arseeenyyy.controller;
 
-import com.github.arseeenyyy.dto.DragonRequestDto;
-import com.github.arseeenyyy.dto.DragonResponseDto;
+import java.util.List;
+
+import com.github.arseeenyyy.dto.dragon.DragonRequestDto;
+import com.github.arseeenyyy.dto.dragon.DragonResponseDto;
 import com.github.arseeenyyy.service.DragonService;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 
 @Path("/dragons")
 @Produces(MediaType.APPLICATION_JSON)
