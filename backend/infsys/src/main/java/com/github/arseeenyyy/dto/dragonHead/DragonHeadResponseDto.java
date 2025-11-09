@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.dragonHead;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

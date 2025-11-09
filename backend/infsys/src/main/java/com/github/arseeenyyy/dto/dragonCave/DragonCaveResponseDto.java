@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.dragonCave;
 
 
 import lombok.AllArgsConstructor;

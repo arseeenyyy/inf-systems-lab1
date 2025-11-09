@@ -1,17 +1,18 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.team;
+
+import java.util.List;
+
+import com.github.arseeenyyy.dto.person.PersonResponseDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeamDto {
-    private Long id;
-    private String name;
+public class TeamCreateResponseDto {
+    private Long teamId;    
     private Integer memberCount;
     private List<PersonResponseDto> members; 
 }
