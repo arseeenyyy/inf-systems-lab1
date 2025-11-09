@@ -1,6 +1,6 @@
 package com.github.arseeenyyy.mapper;
 
-import com.github.arseeenyyy.dto.user.UserReponseDto;
+import com.github.arseeenyyy.dto.user.UserResponseDto;
 import com.github.arseeenyyy.dto.user.UserRequestDto;
 import com.github.arseeenyyy.models.User;
 
@@ -17,8 +17,8 @@ public class UserMapper {
         return user;
     }
 
-    public static UserReponseDto toResponseDto(User user) {
-        return new UserReponseDto(
+    public static UserResponseDto toResponseDto(User user) {
+        return new UserResponseDto(
             user.getId(),
             user.getUsername(), 
             user.getPassword(),
