@@ -20,7 +20,6 @@ public class DragonHeadService {
     @Inject
     private DragonHeadRepository repository;
     
-    @Transactional
     public DragonHeadResponseDto create(DragonHeadRequestDto requestDto) {
         DragonHead head = DragonHeadMapper.toEntity(requestDto);
         DragonHead savedHead = repository.save(head);
@@ -42,7 +41,6 @@ public class DragonHeadService {
         return DragonHeadMapper.toResponseDto(head);
     }
     
-    @Transactional
     public void delete(Long id) {
         repository.delete(id);
     }

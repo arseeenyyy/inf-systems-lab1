@@ -26,7 +26,6 @@ public class PersonService {
     private LocationRepository locationRepository;
     
     
-    @Transactional
     public PersonResponseDto create(PersonRequestDto requestDto) {
         Location location = locationRepository.findById(requestDto.getLocationId());
 
@@ -51,7 +50,6 @@ public class PersonService {
         return PersonMapper.toResponseDto(person);
     }
     
-    @Transactional
     public void delete(Long id) {
         personRepository.delete(id);
     }

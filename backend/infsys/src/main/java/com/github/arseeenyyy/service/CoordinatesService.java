@@ -21,7 +21,6 @@ public class CoordinatesService {
     @Inject
     private CoordinatesRepository repository;
         
-    @Transactional
     public CoordinatesResponseDto create(CoordinatesRequestDto requestDto) {
         Coordinates coordinates = CoordinatesMapper.toEntity(requestDto);
         Coordinates savedCoordinates = repository.save(coordinates);
@@ -43,7 +42,6 @@ public class CoordinatesService {
         return CoordinatesMapper.toResponseDto(coordinates);
     }
 
-    @Transactional
     public void delete(Long id) {
         repository.delete(id);
     }

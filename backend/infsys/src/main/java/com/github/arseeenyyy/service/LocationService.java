@@ -20,7 +20,6 @@ public class LocationService {
     @Inject
     private LocationRepository locationRepository;
     
-    @Transactional
     public LocationResponseDto createLocation(LocationRequestDto requestDto) {
         Location location = LocationMapper.toEntity(requestDto);
         Location savedLocation = locationRepository.save(location);
@@ -42,7 +41,6 @@ public class LocationService {
         return LocationMapper.toResponseDto(location);
     }
     
-    @Transactional
     public void deleteLocation(Long id) {
         locationRepository.delete(id);
     }

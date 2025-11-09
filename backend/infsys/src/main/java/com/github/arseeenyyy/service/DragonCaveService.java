@@ -20,7 +20,6 @@ public class DragonCaveService {
     @Inject
     private DragonCaveRepository repository;
     
-    @Transactional
     public DragonCaveResponseDto create(DragonCaveRequestDto requestDto) {
         DragonCave cave = DragonCaveMapper.toEntity(requestDto);
         DragonCave savedCave = repository.save(cave);
@@ -42,7 +41,6 @@ public class DragonCaveService {
         return DragonCaveMapper.toResponseDto(cave);
     }
     
-    @Transactional
     public void delete(Long id) {
         repository.delete(id);
     }

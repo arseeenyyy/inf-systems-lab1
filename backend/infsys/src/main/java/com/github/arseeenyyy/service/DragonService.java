@@ -57,7 +57,6 @@ public class DragonService {
         return DragonMapper.toResponseDto(savedDragon);
     }
     
-    @Transactional
     public List<DragonResponseDto> getAll() {
         List<Dragon> dragons = dragonRepository.findAll();
         return dragons.stream()
@@ -167,7 +166,6 @@ public class DragonService {
         }
     }
     
-    @Transactional
     public List<DragonResponseDto> findByNameStartingWith(String substring) {
         List<Dragon> dragons = dragonRepository.findByNameStartingWith(substring);
         return dragons.stream()
