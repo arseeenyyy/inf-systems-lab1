@@ -2,10 +2,11 @@ package com.github.arseeenyyy.controller;
 
 import java.util.List;
 
+import com.github.arseeenyyy.dto.user.AuthResponseDto;
+import com.github.arseeenyyy.dto.user.LoginRequestDto;
 import com.github.arseeenyyy.dto.user.UserRequestDto;
 import com.github.arseeenyyy.dto.user.UserResponseDto;
 import com.github.arseeenyyy.service.UserService;
-import org.hibernate.annotations.*;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -77,9 +78,42 @@ public class UserController {
         }
     }
 
+    @POST
+    @Path("/auth/login")
+    public Response login(@Valid LoginRequestDto loginRequest) {
+        try {
+            AuthResponseDto authResponse = userService.authenticate(loginRequest);
+            
+            if (authResponse.getJwt() == null) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(authResponse)
+                        .build();
+            }
+            
+            return Response.ok(authResponse).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Authentication error: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    @POST
+    @Path("/auth/validate")
+    public Response validateToken(String token) {
+        try {
+            boolean isValid = userService.validateToken(token);
+            return Response.ok().entity("{\"valid\": " + isValid + "}").build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Token validation error: " + e.getMessage())
+                    .build();
+        }
+    }
+
     @GET
     @Path("/test")
     public Response test() {
-        return Response.ok("test usrs working mathafaka").build();
+        return Response.ok("test users working mathafaka").build();
     }
 }

@@ -2,10 +2,9 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.User;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.UserTransaction;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped 
@@ -14,23 +13,10 @@ public class UserRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Inject
-    private UserTransaction userTransaction;
-
+    @Transactional
     public User save(User user) {
-        try {
-            userTransaction.begin();
-            entityManager.persist(user);
-            userTransaction.commit();
-            return user;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Save failed", e);
-        }
+        entityManager.persist(user);
+        return user;
     }
 
     public List<User> findAll() {
@@ -45,38 +31,17 @@ public class UserRepository {
         return entityManager.find(User.class, id);
     }
 
+    @Transactional
     public void delete(Long id) {
-        try {
-            userTransaction.begin();
-            User user = entityManager.find(User.class, id);
-            if (user != null) {
-                entityManager.remove(user);
-            }
-            userTransaction.commit();
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Delete failed", e);
+        User user = entityManager.find(User.class, id);
+        if (user != null) {
+            entityManager.remove(user);
         }
     }
 
+    @Transactional
     public User update(User user) {
-        try {
-            userTransaction.begin();
-            User merged = entityManager.merge(user);
-            userTransaction.commit();
-            return merged;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Update failed", e);
-        }
+        return entityManager.merge(user);
     }
 
     public User findByUsername(String username) {

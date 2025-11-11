@@ -3,6 +3,8 @@ package com.github.arseeenyyy.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.github.arseeenyyy.dto.user.AuthResponseDto;
+import com.github.arseeenyyy.dto.user.LoginRequestDto;
 import com.github.arseeenyyy.dto.user.UserRequestDto;
 import com.github.arseeenyyy.dto.user.UserResponseDto;
 import com.github.arseeenyyy.mapper.UserMapper;
@@ -22,6 +24,9 @@ public class UserService {
 
     @Inject
     private PasswordService passwordService;
+
+    @Inject
+    private JwtService jwtService;
         
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
@@ -79,5 +84,31 @@ public class UserService {
         }
         User updatedUser = repository.update(existingUser);
         return UserMapper.toResponseDto(updatedUser);
+    }
+
+    public AuthResponseDto authenticate(LoginRequestDto loginRequest) {
+        User user = repository.findByUsername(loginRequest.getUsername());
+        if (user == null) {
+            return new AuthResponseDto(null, null, "Invalid username or password");
+        }
+
+        if (!passwordService.verifyPassword(loginRequest.getPassword(), user.getPassword())) {
+            return new AuthResponseDto(null, null, "Invalid username or password");
+        }
+
+        String jwt = jwtService.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        return new AuthResponseDto(user.getId(), jwt, "Authentication successful");
+    }
+
+    public boolean validateToken(String token) {
+        return jwtService.validateToken(token);
+    }
+
+    public User getUserFromToken(String token) {
+        if (!validateToken(token)) {
+            throw new RuntimeException("Invalid token");
+        }
+        Long userId = jwtService.getUserIdFromToken(token);
+        return repository.findById(userId);
     }
 }
