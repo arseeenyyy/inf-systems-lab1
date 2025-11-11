@@ -5,6 +5,7 @@ import java.util.List;
 import com.github.arseeenyyy.dto.user.UserRequestDto;
 import com.github.arseeenyyy.dto.user.UserResponseDto;
 import com.github.arseeenyyy.service.UserService;
+import org.hibernate.annotations.*;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
