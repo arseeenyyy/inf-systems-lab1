@@ -9,7 +9,33 @@ class ApiClient {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.status === 204 ? null : response.json();
   }
+  async register(userData) {
+    return this.request('/users', {
+      method: 'POST',
+      body: {
+        username: userData.username,
+        password: userData.password,
+        role: userData.isAdmin ? 'ADMIN' : 'USER'
+      }
+    });
+  }
 
+  async login(loginData) {
+    return this.request('/users/auth/login', {
+      method: 'POST',
+      body: {
+        username: loginData.username,
+        password: loginData.password
+      }
+    });
+  }
+
+  async validateToken(token) {
+    return this.request('/users/auth/validate', {
+      method: 'POST',
+      body: token
+    });
+  }
   async getDragons() { return this.request('/dragons'); }
   asycreateDragon(data) { return this.request('/dragons', { method: 'POST', body: JSON.stringify(data) }); }
   async updateDragon(id, data) { return this.request(`/dragons/${id}`, { method: 'PUT', body: JSON.stringify(data) }); }
