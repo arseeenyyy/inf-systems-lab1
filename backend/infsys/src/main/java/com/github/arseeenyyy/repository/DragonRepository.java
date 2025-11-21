@@ -116,4 +116,11 @@ public class DragonRepository {
             .setParameter("headId", headId)
             .getResultList();
     }
+
+    public List<Dragon> findByUserId(Long userId) {
+        return entityManager.createQuery(
+            "SELECT d FROM Dragon d WHERE d.user.id = :userId", Dragon.class)
+            .setParameter("userId", userId)
+            .getResultList();
+    }
 }

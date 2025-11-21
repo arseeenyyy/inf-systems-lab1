@@ -8,14 +8,8 @@ import com.github.arseeenyyy.service.DragonHeadService;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -28,20 +22,39 @@ public class DragonHeadController {
     private DragonHeadService headService;
     
     @GET
-    public List<DragonHeadResponseDto> getAll() {
-        return headService.getAll();
+    public Response getAll(@HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            String jwtToken = extractToken(authHeader);
+            List<DragonHeadResponseDto> heads = headService.getAll(jwtToken);
+            return Response.ok(heads).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error getting heads: " + e.getMessage())
+                    .build();
+        }
     }
     
     @GET
     @Path("/{id}")
-    public DragonHeadResponseDto getById(@PathParam("id") Long id) {
-        return headService.getById(id);
+    public Response getById(@PathParam("id") Long id, 
+                           @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            String jwtToken = extractToken(authHeader);
+            DragonHeadResponseDto head = headService.getById(id, jwtToken);
+            return Response.ok(head).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error getting head: " + e.getMessage())
+                    .build();
+        }
     }
     
     @POST
-    public Response create(@Valid DragonHeadRequestDto requestDto) {
+    public Response create(@Valid DragonHeadRequestDto requestDto,
+                          @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
-            DragonHeadResponseDto response = headService.create(requestDto);
+            String jwtToken = extractToken(authHeader);
+            DragonHeadResponseDto response = headService.create(requestDto, jwtToken);
             return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -52,9 +65,12 @@ public class DragonHeadController {
     
     @PUT
     @Path("/{id}")
-    public Response update(@PathParam("id") Long id, DragonHeadRequestDto requestDto) {
+    public Response update(@PathParam("id") Long id, 
+                          @Valid DragonHeadRequestDto requestDto,
+                          @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
-            DragonHeadResponseDto response = headService.update(id, requestDto);
+            String jwtToken = extractToken(authHeader);
+            DragonHeadResponseDto response = headService.update(id, requestDto, jwtToken);
             return Response.ok(response).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -65,14 +81,20 @@ public class DragonHeadController {
     
     @DELETE
     @Path("/{id}")
-    public Response delete(@PathParam("id") Long id) {
+    public Response delete(@PathParam("id") Long id,
+                          @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
-            headService.delete(id);
+            String jwtToken = extractToken(authHeader);
+            headService.delete(id, jwtToken);
             return Response.noContent().build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error deleting dragon head: " + e.getMessage())
                     .build();
         }
+    }
+
+    private String extractToken(String authHeader) {
+        return authHeader.substring("Bearer ".length()).trim();
     }
 }

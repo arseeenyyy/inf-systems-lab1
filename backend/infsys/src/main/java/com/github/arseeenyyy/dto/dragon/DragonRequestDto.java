@@ -34,4 +34,5 @@ public class DragonRequestDto {
 
     private DragonCharacter character;
     private Long headId;
+    private Long userId;
 }

@@ -2,10 +2,9 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.DragonCave;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.UserTransaction;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped 
@@ -14,24 +13,11 @@ public class DragonCaveRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Inject
-    private UserTransaction userTransaction;
-
+    @Transactional
     public DragonCave save(DragonCave cave) {
-        try {
-            userTransaction.begin();
-            entityManager.persist(cave);
-            userTransaction.commit();
-            return cave;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Save failed", e);
-        }
-    } 
+        entityManager.persist(cave);
+        return cave;
+    }
 
     public List<DragonCave> findAll() {
         return entityManager.createQuery("SELECT c FROM DragonCave c", DragonCave.class)
@@ -45,37 +31,23 @@ public class DragonCaveRepository {
         return entityManager.find(DragonCave.class, id);
     }
 
+    @Transactional
     public void delete(Long id) {
-        try {
-            userTransaction.begin();
-            DragonCave cave = entityManager.find(DragonCave.class, id);
-            if (cave != null) {
-                entityManager.remove(cave);
-            }
-            userTransaction.commit();
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Delete failed", e);
+        DragonCave cave = entityManager.find(DragonCave.class, id);
+        if (cave != null) {
+            entityManager.remove(cave);
         }
     }
 
+    @Transactional
     public DragonCave update(DragonCave cave) {
-        try {
-            userTransaction.begin();
-            DragonCave merged = entityManager.merge(cave);
-            userTransaction.commit();
-            return merged;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Update failed", e);
-        }
+        return entityManager.merge(cave);
+    }
+
+    public List<DragonCave> findByUserId(Long userId) {
+        return entityManager.createQuery(
+            "SELECT c FROM DragonCave c WHERE c.user.id = :userId", DragonCave.class)
+            .setParameter("userId", userId)
+            .getResultList();
     }
 }

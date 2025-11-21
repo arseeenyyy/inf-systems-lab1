@@ -4,13 +4,14 @@ import com.github.arseeenyyy.dto.person.PersonRequestDto;
 import com.github.arseeenyyy.dto.person.PersonResponseDto;
 import com.github.arseeenyyy.models.Location;
 import com.github.arseeenyyy.models.Person;
+import com.github.arseeenyyy.models.User;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PersonMapper {
 
-    public static Person toEntity(PersonRequestDto requestDto, Location location) {
+    public static Person toEntity(PersonRequestDto requestDto, Location location, User user) {
         Person person = new Person();
         person.setName(requestDto.getName()); 
         person.setEyeColor(requestDto.getEyeColor());
@@ -18,6 +19,7 @@ public class PersonMapper {
         person.setLocation(location); 
         person.setHeight(requestDto.getHeight());
         person.setNationality(requestDto.getNationality());
+        person.setUser(user);
         return person;
     }
 

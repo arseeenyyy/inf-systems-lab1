@@ -26,4 +26,5 @@ public class DragonResponseDto {
     private Color color;
     private DragonCharacter character;
     private DragonHeadResponseDto head;
+    private Long userId;
 }
