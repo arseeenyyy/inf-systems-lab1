@@ -11,7 +11,7 @@ public class UserMapper {
     public static User toEntity(UserRequestDto requestDto) {
         User user = new User();
         user.setUsername(requestDto.getUsername()); 
-        user.setRole(requestDto.getRole()); //TODO do smth with password setting
+        user.setRole(requestDto.getRole()); 
         return user;
     }
 }
