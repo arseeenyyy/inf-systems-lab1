@@ -291,3 +291,32 @@ input[type="checkbox"] {
   gap: 20px;
   margin-bottom: 20px;
 }
+
+input[type="file"] {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #ffffff;
+  padding: 8px;
+  border-radius: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  width: 100%;
+  cursor: pointer;
+}
+
+input[type="file"]:focus {
+  outline: none;
+  border-color: #00ffff;
+}
+
+input[type="file"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-info {
+  color: #00ffff;
+  font-size: 12px;
+  margin-top: 8px;
+  text-align: center;
+}

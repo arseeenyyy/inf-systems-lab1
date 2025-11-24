@@ -1,72 +1,97 @@
-// src/App.js
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import AuthPage from './pages/AuthPage';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
 import DragonsPage from './pages/DragonsPage';
 import TeamsPage from './pages/TeamsPage';
+import AuthPage from './pages/AuthPage';
+import ImportPage from './pages/ImportPage';
+import { apiClient } from './api/client';
 import './styles/main.css';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState('');
-
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const role = localStorage.getItem('userRole');
-    if (token) {
-      setIsAuthenticated(true);
-      setUserRole(role || 'USER');
-    }
-  }, []);
+function Header() {
+  const navigate = useNavigate();
+  const isAuthenticated = apiClient.isAuthenticated();
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('username');
-    setIsAuthenticated(false);
-    setUserRole('');
+    apiClient.logout();
+    navigate('/auth');
   };
 
   return (
+    <div className="header">
+      <nav>
+        {isAuthenticated ? (
+        <>
+          <Link to="/dragons" className="btn btn-primary">[dragons]</Link>
+          <Link to="/teams" className="btn btn-primary">[teams]</Link>
+          <Link to="/import" className="btn btn-primary">[import]</Link>
+          <button onClick={handleLogout} className="btn btn-danger">[logout]</button>
+        </>
+        ) : (
+          <Link to="/auth" className="btn btn-primary">[auth]</Link>
+        )}
+      </nav>
+    </div>
+  );
+}
+
+const ProtectedRoute = ({ children }) => {
+  if (!apiClient.isAuthenticated()) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  if (apiClient.isAuthenticated()) {
+    return <Navigate to="/dragons" replace />;
+  }
+
+  return children;
+};
+
+
+function App() {
+  return (
     <Router>
       <div className="container">
-        <div className="header">
-          <nav>
-            {isAuthenticated ? (
-              <>
-                <Link to="/dragons" className="btn btn-primary">[Dragons]</Link>
-                <Link to="/teams" className="btn btn-primary">[Teams]</Link>
-                <span style={{ color: '#00ffff', margin: '0 15px' }}>
-                  [{localStorage.getItem('username')}]
-                </span>
-                <button onClick={handleLogout} className="btn btn-danger">
-                  [logout]
-                </button>
-              </>
-            ) : (
-              <Link to="/auth" className="btn btn-primary">[Auth]</Link>
-            )}
-          </nav>
-        </div>
-
+        <Header />
+        
         <Routes>
-          <Route 
-            path="/" 
-            element={isAuthenticated ? <Navigate to="/dragons" /> : <AuthPage />} 
-          />
-          <Route 
-            path="/auth" 
-            element={isAuthenticated ? <Navigate to="/dragons" /> : <AuthPage />} 
-          />
-          <Route 
-            path="/dragons" 
-            element={isAuthenticated ? <DragonsPage /> : <Navigate to="/auth" />} 
-          />
-          <Route 
-            path="/teams" 
-            element={isAuthenticated ? <TeamsPage /> : <Navigate to="/auth" />} 
-          />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/auth" element={
+            <PublicRoute>
+              <AuthPage />
+            </PublicRoute>
+          } />
+          
+          <Route path="/dragons" element={
+            <ProtectedRoute>
+              <DragonsPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/teams" element={
+            <ProtectedRoute>
+              <TeamsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/import" element={
+            <ProtectedRoute>
+              <ImportPage />
+            </ProtectedRoute>
+          } />
+                  
+          <Route path="/" element={
+            apiClient.isAuthenticated() ? 
+              <Navigate to="/dragons" replace /> : 
+              <Navigate to="/auth" replace />
+          } />
+          
+          <Route path="*" element={
+            apiClient.isAuthenticated() ? 
+              <Navigate to="/dragons" replace /> : 
+              <Navigate to="/auth" replace />
+          } />
         </Routes>
       </div>
     </Router>

@@ -1,3 +1,4 @@
+// src/pages/AuthPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
@@ -22,7 +23,11 @@ function AuthPage() {
     }
 
     try {
-      await apiClient.register({ username, password, isAdmin });
+      await apiClient.register({ 
+        username: username.trim(), 
+        password: password.trim(), 
+        isAdmin 
+      });
       setError('registration_successful');
       setTimeout(() => {
         setError('');
@@ -47,20 +52,15 @@ function AuthPage() {
     }
 
     try {
-      const authResponse = await apiClient.login({ username, password });
+      await apiClient.login({ 
+        username: username.trim(), 
+        password: password.trim() 
+      });
       
-      if (authResponse.jwt) {
-        localStorage.setItem('authToken', authResponse.jwt);
-        localStorage.setItem('userRole', authResponse.role || (isAdmin ? 'ADMIN' : 'USER'));
-        localStorage.setItem('username', username);
-        
-        setError('login_successful');
-        setTimeout(() => {
-          navigate('/dragons');
-        }, 1000);
-      } else {
-        setError('invalid_credentials');
-      }
+      setError('login_successful');
+      setTimeout(() => {
+        navigate('/dragons');
+      }, 1000);
     } catch (err) {
       setError(`login_failed: ${err.message}`);
     } finally {
