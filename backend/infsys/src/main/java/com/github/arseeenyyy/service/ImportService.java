@@ -48,7 +48,7 @@ public class ImportService {
 
             int savedCount = 0;
             for (JsonNode dragonJson : dragons) {
-                createDragon(dragonJson, user);
+                createDragonWithRelations(dragonJson, user);
                 savedCount++;
             }
 
@@ -66,31 +66,98 @@ public class ImportService {
         return op;
     }
 
-    private void createDragon(JsonNode json, User user) {
-        // Coordinates
+    private void createDragonWithRelations(JsonNode json, User user) {
         Coordinates coordinates = new Coordinates();
         coordinates.setX(json.get("coordinates").get("x").asDouble());
         coordinates.setY(json.get("coordinates").get("y").asDouble());
         coordinates.setUser(user);
         em.persist(coordinates);
 
-        // Dragon
+        DragonCave cave = null;
+        if (json.has("cave") && !json.get("cave").isNull()) {
+            cave = new DragonCave();
+            cave.setNumberOfTreasures(json.get("cave").get("numberOfTreasures").asLong());
+            cave.setUser(user);
+            em.persist(cave);
+        }
+
+        DragonHead head = null;
+        if (json.has("head") && !json.get("head").isNull()) {
+            head = new DragonHead();
+            head.setSize(json.get("head").get("size").asInt());
+            if (json.get("head").has("eyesCount") && !json.get("head").get("eyesCount").isNull()) {
+                head.setEyesCount(json.get("head").get("eyesCount").asInt());
+            }
+            head.setUser(user);
+            em.persist(head);
+        }
+
+        Person killer = null;
+        if (json.has("killer") && !json.get("killer").isNull()) {
+            killer = createPerson(json.get("killer"), user);
+        }
+
         Dragon dragon = new Dragon();
         dragon.setName(json.get("name").asText());
         dragon.setCoordinates(coordinates);
+        dragon.setCave(cave);
+        dragon.setKiller(killer);
         dragon.setAge(json.get("age").asInt());
         dragon.setWeight(json.get("weight").asDouble());
         dragon.setUser(user);
 
-        // Optional fields
-        if (json.has("color")) {
+        if (json.has("color") && !json.get("color").isNull()) {
             dragon.setColor(Color.valueOf(json.get("color").asText()));
         }
-        if (json.has("character")) {
+        if (json.has("character") && !json.get("character").isNull()) {
             dragon.setCharacter(DragonCharacter.valueOf(json.get("character").asText()));
         }
+        
+        dragon.setHead(head);
 
         em.persist(dragon);
+    }
+
+    private Person createPerson(JsonNode personJson, User user) {
+        Person person = new Person();
+        
+        person.setName(personJson.get("name").asText());
+        person.setEyeColor(Color.valueOf(personJson.get("eyeColor").asText()));
+        person.setHeight(personJson.get("height").asInt());
+        person.setUser(user);
+
+        if (personJson.has("hairColor") && !personJson.get("hairColor").isNull()) {
+            person.setHairColor(Color.valueOf(personJson.get("hairColor").asText()));
+        }
+        if (personJson.has("nationality") && !personJson.get("nationality").isNull()) {
+            person.setNationality(Country.valueOf(personJson.get("nationality").asText()));
+        }
+
+        if (personJson.has("location") && !personJson.get("location").isNull()) {
+            Location location = createLocation(personJson.get("location"), user);
+            person.setLocation(location);
+        }
+
+        em.persist(person);
+        return person;
+    }
+
+    private Location createLocation(JsonNode locationJson, User user) {
+        Location location = new Location();
+        
+        location.setX(locationJson.get("x").asInt());
+        location.setName(locationJson.get("name").asText());
+        location.setUser(user);
+
+        if (locationJson.has("y")) {
+            location.setY((float) locationJson.get("y").asDouble());
+        }
+        if (locationJson.has("z")) {
+            location.setZ(locationJson.get("z").asLong());
+        }
+
+        em.persist(location);
+        return location;
     }
 
     public List<ImportOperation> getImportHistory(String jwtToken, int page, int size) {

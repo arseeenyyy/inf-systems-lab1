@@ -1,7 +1,6 @@
 package com.github.arseeenyyy.controller;
 
 import com.github.arseeenyyy.models.ImportOperation;
-import com.github.arseeenyyy.models.ImportStatus;
 import com.github.arseeenyyy.service.ImportService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
