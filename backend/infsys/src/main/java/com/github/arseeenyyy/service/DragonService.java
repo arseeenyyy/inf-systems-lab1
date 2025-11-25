@@ -190,6 +190,93 @@ public class DragonService {
                 .map(DragonMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
+    @Transactional
+    public void deleteAllByColor(String color, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        List<Dragon> dragonsToDelete;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragonsToDelete = dragonRepository.findByColor(color);
+        } else {
+            dragonsToDelete = dragonRepository.findByColor(color).stream()
+                    .filter(d -> d.getUser().getId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+
+        for (Dragon dragon : dragonsToDelete) {
+            deleteDragonWithCleanup(dragon.getId());
+        }
+    }
+
+    @Transactional
+    public void deleteOneByColor(String color, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        List<Dragon> dragons;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragons = dragonRepository.findByColor(color);
+        } else {
+            dragons = dragonRepository.findByColor(color).stream()
+                    .filter(d -> d.getUser().getId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+
+        if (!dragons.isEmpty()) {
+            Dragon dragonToDelete = dragons.get(0); 
+            deleteDragonWithCleanup(dragonToDelete.getId());
+        }
+    }
+    private void deleteDragonWithCleanup(Long dragonId) {
+        Dragon dragon = dragonRepository.findById(dragonId);
+        if (dragon != null) {
+            DragonCave cave = dragon.getCave();
+            Person killer = dragon.getKiller();
+            DragonHead head = dragon.getHead();
+            
+            if (cave != null) {
+                clearCaveReferences(cave.getId());
+            }
+            if (head != null) {
+                clearHeadReferences(head.getId());
+            }
+            if (killer != null) {
+                clearKillerReferences(killer.getId());
+            }
+            
+            dragonRepository.delete(dragonId);
+        }
+    }
+    public List<DragonResponseDto> findByNameStartingWith(String substring, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        List<Dragon> dragons;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragons = dragonRepository.findByNameStartingWith(substring);
+        } else {
+            dragons = dragonRepository.findByNameStartingWith(substring).stream()
+                    .filter(d -> d.getUser().getId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+        
+        return dragons.stream()
+                .map(DragonMapper::toResponseDto)
+                .collect(Collectors.toList());
+    }
 
     private void checkUserAccess(Dragon dragon, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);

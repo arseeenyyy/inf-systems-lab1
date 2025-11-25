@@ -133,7 +133,6 @@ class ApiClient {
     return this.request(`/dragons/name-starts-with/${substring}`);
   }
 
-  // Остальные методы остаются аналогичными...
   async getCoordinates() { 
     return this.request('/coordinates'); 
   }

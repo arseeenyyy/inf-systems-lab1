@@ -1,5 +1,6 @@
 package com.github.arseeenyyy.repository;
 
+import com.github.arseeenyyy.models.Dragon;
 import com.github.arseeenyyy.models.DragonCave;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -35,6 +36,15 @@ public class DragonCaveRepository {
     public void delete(Long id) {
         DragonCave cave = entityManager.find(DragonCave.class, id);
         if (cave != null) {
+            List<Dragon> dragonsWithThisCave = entityManager.createQuery(
+                "SELECT d FROM Dragon d WHERE d.cave.id = :caveId", Dragon.class)
+                .setParameter("caveId", id)
+                .getResultList();
+            
+            for (Dragon dragon : dragonsWithThisCave) {
+                dragon.setCave(null);
+                entityManager.merge(dragon);
+            }
             entityManager.remove(cave);
         }
     }

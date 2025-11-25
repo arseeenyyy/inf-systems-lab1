@@ -91,6 +91,49 @@ public class DragonController {
                     .build();
         }
     }
+    @DELETE
+    @Path("/color/{color}/all")
+    public Response deleteAllByColor(@PathParam("color") String color,
+                                    @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            String jwtToken = extractToken(authHeader);
+            dragonService.deleteAllByColor(color, jwtToken);
+            return Response.noContent().build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error deleting dragons by color: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    @DELETE
+    @Path("/color/{color}/one")
+    public Response deleteOneByColor(@PathParam("color") String color,
+                                    @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            String jwtToken = extractToken(authHeader);
+            dragonService.deleteOneByColor(color, jwtToken);
+            return Response.noContent().build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error deleting one dragon by color: " + e.getMessage())
+                    .build();
+        }
+    }
+    @GET
+    @Path("/name-starts-with/{substring}")
+    public Response findByNameStartingWith(@PathParam("substring") String substring,
+                                        @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            String jwtToken = extractToken(authHeader);
+            List<DragonResponseDto> dragons = dragonService.findByNameStartingWith(substring, jwtToken);
+            return Response.ok(dragons).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error searching dragons by name: " + e.getMessage())
+                    .build();
+        }
+    }
 
     private String extractToken(String authHeader) {
         return authHeader.substring("Bearer ".length()).trim();

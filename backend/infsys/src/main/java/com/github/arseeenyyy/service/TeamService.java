@@ -15,10 +15,12 @@ import com.github.arseeenyyy.models.Dragon;
 import com.github.arseeenyyy.models.DragonCave;
 import com.github.arseeenyyy.models.Person;
 import com.github.arseeenyyy.models.Team;
+import com.github.arseeenyyy.models.User;
 import com.github.arseeenyyy.repository.DragonCaveRepository;
 import com.github.arseeenyyy.repository.DragonRepository;
 import com.github.arseeenyyy.repository.PersonRepository;
 import com.github.arseeenyyy.repository.TeamRepository;
+import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,21 +42,34 @@ public class TeamService {
     @Inject
     private DragonRepository dragonRepository;
 
+    @Inject
+    private UserRepository userRepository;
+
+    @Inject
+    private JwtService jwtService;
+
     @Transactional
-    public TeamCreateResponseDto createTeam(TeamCreateRequestDto requestDto) {
-        if (teamRepository.existsByName(requestDto.getName())) {
+    public TeamCreateResponseDto createTeam(TeamCreateRequestDto requestDto, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        if (teamRepository.existsByNameAndUser(requestDto.getName(), user)) {
             throw new IllegalArgumentException("Team with name '" + requestDto.getName() + "' already exists");
         }
         
         Team team = new Team();
         team.setName(requestDto.getName());
+        team.setUser(user);
         Team savedTeam = teamRepository.save(team);
         
         int addedMembers = 0;
         List<Person> members = new ArrayList<>();
         for (Long personId : requestDto.getPersonsIds()) {
             Person person = personRepository.findById(personId);
-            if (person != null) {
+            if (person != null && checkUserAccess(person, jwtToken)) {
                 person.setTeam(savedTeam);
                 personRepository.update(person);
                 members.add(person);
@@ -63,36 +78,52 @@ public class TeamService {
         } 
         
         List<PersonResponseDto> membersDto = members.stream()
-            .map(p -> PersonMapper.toResponseDto(p)) 
+            .map(PersonMapper::toResponseDto) 
             .collect(Collectors.toList());
             
         return new TeamCreateResponseDto(savedTeam.getId(), addedMembers, membersDto);
     }
-    public List<TeamDto> getAllTeams() {
-        return teamRepository.findAllWithMembers();
+
+    public List<TeamDto> getAllTeams(String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        if ("ADMIN".equals(user.getRole().name())) {
+            return teamRepository.findAllWithMembers();
+        } else {
+            return teamRepository.findByUserIdWithMembers(userId);
+        }
     }
     
-    public Team getTeamById(Long id) {
+    public Team getTeamById(Long id, String jwtToken) {
         Team team = teamRepository.findById(id);
         if (team == null) {
             throw new NotFoundException("Team not found with id: " + id);
         }
+
+        checkUserAccess(team, jwtToken);
         return team;
     }
     
     @Transactional
-    public void deleteTeam(Long id) {
+    public void deleteTeam(Long id, String jwtToken) {
         Team team = teamRepository.findById(id);
         if (team == null) {
             throw new NotFoundException("Team not found with id: " + id);
         }
+
+        checkUserAccess(team, jwtToken);
         
         List<Person> teamMembers = personRepository.findByTeamId(id);
         
         for (Person person : teamMembers) {
             List<Dragon> killedDragons = dragonRepository.findByKillerId(person.getId());
             for (Dragon dragon : killedDragons) {
-                dragon.setKiller(null); // обнуляем ссылку на убийцу
+                dragon.setKiller(null);
                 dragonRepository.update(dragon);
             }
         }
@@ -103,11 +134,13 @@ public class TeamService {
     }
 
     @Transactional
-    public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto) {
+    public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto, String jwtToken) {
         Team team = teamRepository.findById(requestDto.getTeamId());
         if (team == null) {
             throw new NotFoundException("Team not found with id: " + requestDto.getTeamId());
         }
+
+        checkUserAccess(team, jwtToken);
         
         DragonCave cave = dragonCaveRepository.findById(requestDto.getCaveId());
         if (cave == null) {
@@ -132,23 +165,33 @@ public class TeamService {
                 }
             }
             
+            // Перед удалением пещеры убедимся, что все драконы отвязаны от нее
+            List<Dragon> remainingDragons = dragonRepository.findByCaveId(requestDto.getCaveId());
+            for (Dragon dragon : remainingDragons) {
+                dragon.setCave(null);
+                dragonRepository.update(dragon);
+            }
+            
             dragonCaveRepository.delete(requestDto.getCaveId());
         }
         
         return new TeamToCaveResponseDto(treasures, dragonsKilled);
     }
+
     @Transactional
-    public TeamCreateResponseDto addMembersToTeam(Long teamId, List<Long> personIds) {
+    public TeamCreateResponseDto addMembersToTeam(Long teamId, List<Long> personIds, String jwtToken) {
         Team team = teamRepository.findById(teamId);
         if (team == null) {
             throw new NotFoundException("Team not found with id: " + teamId);
         }
+
+        checkUserAccess(team, jwtToken);
         
         int addedMembers = 0;
         List<Person> members = new ArrayList<>();
         for (Long personId : personIds) {
             Person person = personRepository.findById(personId);
-            if (person != null && person.getTeam() == null) {
+            if (person != null && person.getTeam() == null && checkUserAccess(person, jwtToken)) {
                 person.setTeam(team);
                 personRepository.update(person);
                 members.add(person);
@@ -163,15 +206,18 @@ public class TeamService {
     }
     
     @Transactional
-    public TeamCreateResponseDto removeMembersFromTeam(Long teamId, List<Long> personIds) {
+    public TeamCreateResponseDto removeMembersFromTeam(Long teamId, List<Long> personIds, String jwtToken) {
         Team team = teamRepository.findById(teamId);
         if (team == null) {
             throw new NotFoundException("Team not found with id: " + teamId);
         }
+
+        checkUserAccess(team, jwtToken);
+
         int removedMembers = 0;
         for (Long personId : personIds) {
             Person person = personRepository.findById(personId);
-            if (person != null && team.equals(person.getTeam())) {
+            if (person != null && team.equals(person.getTeam()) && checkUserAccess(person, jwtToken)) {
                 person.setTeam(null);
                 personRepository.update(person);
                 removedMembers++;
@@ -179,5 +225,37 @@ public class TeamService {
         }
         
         return new TeamCreateResponseDto(teamId, removedMembers, new ArrayList<>());
+    }
+
+    private void checkUserAccess(Team team, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        if ("ADMIN".equals(user.getRole().name())) {
+            return;
+        }
+
+        if (!team.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Access denied: You don't have permission to access this team");
+        }
+    }
+
+    private boolean checkUserAccess(Person person, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        if ("ADMIN".equals(user.getRole().name())) {
+            return true;
+        }
+
+        return person.getUser().getId().equals(userId);
     }
 }
