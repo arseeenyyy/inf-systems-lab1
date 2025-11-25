@@ -3,14 +3,10 @@ package com.github.arseeenyyy.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.arseeenyyy.models.*;
-import com.github.arseeenyyy.repository.ImportRepository;
+import com.github.arseeenyyy.repository.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,19 +17,34 @@ public class ImportService {
     private ImportRepository importRepository;
 
     @Inject
+    private UserRepository userRepository;
+
+    @Inject
+    private CoordinatesRepository coordinatesRepository;
+
+    @Inject
+    private DragonCaveRepository dragonCaveRepository;
+
+    @Inject
+    private DragonHeadRepository dragonHeadRepository;
+
+    @Inject
+    private PersonRepository personRepository;
+
+    @Inject
+    private LocationRepository locationRepository;
+
+    @Inject
+    private DragonRepository dragonRepository;
+
+    @Inject
     private JwtService jwtService;
 
-    @PersistenceContext
-    private EntityManager em;
-
-    @Transactional
     public ImportOperation processImport(InputStream fileInputStream, String jwtToken) {
-        ImportOperation op = new ImportOperation();
-        op.setTimestamp(LocalDateTime.now());
-        
         Long userId = jwtService.getUserIdFromToken(jwtToken);
-        User user = em.find(User.class, userId);
-        op.setUser(user);
+        
+        ImportOperation op = new ImportOperation();
+        op.setUserId(userId);
 
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -48,39 +59,52 @@ public class ImportService {
 
             int savedCount = 0;
             for (JsonNode dragonJson : dragons) {
-                createDragonWithRelations(dragonJson, user);
+                createDragonWithRelations(dragonJson, userId);
                 savedCount++;
             }
 
             op.setStatus(ImportStatus.SUCCESS);
-            op.setAddedCount(savedCount);
+            op.setAddedCount(savedCount); // Только для успешных операций
 
         } catch (Exception e) {
             op.setStatus(ImportStatus.FAILED);
-            op.setAddedCount(0);
-            op.setErrorMessage(e.getMessage());
-            throw new RuntimeException("Import failed: " + e.getMessage());
+            op.setAddedCount(null); // Для неудачных операций - null
         }
 
-        importRepository.save(op);
-        return op;
+        return importRepository.save(op);
     }
 
-    private void createDragonWithRelations(JsonNode json, User user) {
+    public ImportOperation createFailedOperation(String errorMessage, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        
+        ImportOperation op = new ImportOperation();
+        op.setUserId(userId);
+        op.setStatus(ImportStatus.FAILED);
+        op.setAddedCount(null); // Для неудачных операций - null
+        
+        return importRepository.save(op);
+    }
+
+    private void createDragonWithRelations(JsonNode json, Long userId) {
+        User user = userRepository.findById(userId);
+
+        // Coordinates
         Coordinates coordinates = new Coordinates();
         coordinates.setX(json.get("coordinates").get("x").asDouble());
         coordinates.setY(json.get("coordinates").get("y").asDouble());
         coordinates.setUser(user);
-        em.persist(coordinates);
+        coordinatesRepository.save(coordinates);
 
+        // DragonCave
         DragonCave cave = null;
         if (json.has("cave") && !json.get("cave").isNull()) {
             cave = new DragonCave();
             cave.setNumberOfTreasures(json.get("cave").get("numberOfTreasures").asLong());
             cave.setUser(user);
-            em.persist(cave);
+            dragonCaveRepository.save(cave);
         }
 
+        // DragonHead
         DragonHead head = null;
         if (json.has("head") && !json.get("head").isNull()) {
             head = new DragonHead();
@@ -89,14 +113,16 @@ public class ImportService {
                 head.setEyesCount(json.get("head").get("eyesCount").asInt());
             }
             head.setUser(user);
-            em.persist(head);
+            dragonHeadRepository.save(head);
         }
 
+        // Person (killer)
         Person killer = null;
         if (json.has("killer") && !json.get("killer").isNull()) {
             killer = createPerson(json.get("killer"), user);
         }
 
+        // Dragon
         Dragon dragon = new Dragon();
         dragon.setName(json.get("name").asText());
         dragon.setCoordinates(coordinates);
@@ -114,8 +140,7 @@ public class ImportService {
         }
         
         dragon.setHead(head);
-
-        em.persist(dragon);
+        dragonRepository.save(dragon);
     }
 
     private Person createPerson(JsonNode personJson, User user) {
@@ -138,7 +163,7 @@ public class ImportService {
             person.setLocation(location);
         }
 
-        em.persist(person);
+        personRepository.save(person);
         return person;
     }
 
@@ -156,29 +181,18 @@ public class ImportService {
             location.setZ(locationJson.get("z").asLong());
         }
 
-        em.persist(location);
+        locationRepository.save(location);
         return location;
     }
 
-    public List<ImportOperation> getImportHistory(String jwtToken, int page, int size) {
+    public List<ImportOperation> getImportHistory(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         String role = jwtService.getRoleFromToken(jwtToken);
         
         if ("ADMIN".equals(role)) {
-            return importRepository.findAllPaged(page, size);
+            return importRepository.findAll();
         } else {
-            return importRepository.findByUserIdPaged(userId, page, size);
-        }
-    }
-
-    public long getImportHistoryCount(String jwtToken) {
-        Long userId = jwtService.getUserIdFromToken(jwtToken);
-        String role = jwtService.getRoleFromToken(jwtToken);
-        
-        if ("ADMIN".equals(role)) {
-            return importRepository.countAll();
-        } else {
-            return importRepository.countByUserId(userId);
+            return importRepository.findByUserId(userId);
         }
     }
 }

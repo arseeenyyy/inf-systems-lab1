@@ -27,6 +27,9 @@ public class ImportController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response uploadFile(@HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader,
                               MultipartFormDataInput input) {
+        
+        ImportOperation result;
+        
         try {
             String jwtToken = extractToken(authHeader);
             
@@ -34,36 +37,35 @@ public class ImportController {
             List<InputPart> fileParts = formData.get("file");
             
             if (fileParts == null || fileParts.isEmpty()) {
-                return errorResponse("File not provided");
+                result = importService.createFailedOperation("File not provided", jwtToken);
+            } else {
+                InputPart filePart = fileParts.get(0);
+                InputStream fileStream = filePart.getBody(InputStream.class, null);
+                result = importService.processImport(fileStream, jwtToken);
             }
-
-            InputPart filePart = fileParts.get(0);
-            InputStream fileStream = filePart.getBody(InputStream.class, null);
-            
-            ImportOperation result = importService.processImport(fileStream, jwtToken);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", result.getStatus().toString());
-            response.put("addedCount", result.getAddedCount());
-            
-            return Response.ok(response).build();
             
         } catch (Exception e) {
-            return errorResponse(e.getMessage());
+            result = importService.createFailedOperation(e.getMessage(), authHeader);
         }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", result.getStatus().toString());
+        response.put("addedCount", result.getAddedCount());
+        
+        return Response.ok(response).build();
     }
 
     @GET
     @Path("/history")
-    public Response getHistory(@HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader,
-                              @QueryParam("page") @DefaultValue("1") int page,
-                              @QueryParam("size") @DefaultValue("10") int size) {
+    public Response getHistory(@HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
             String jwtToken = extractToken(authHeader);
-            List<ImportOperation> history = importService.getImportHistory(jwtToken, page, size);
+            List<ImportOperation> history = importService.getImportHistory(jwtToken);
             return Response.ok(history).build();
         } catch (Exception e) {
-            return errorResponse(e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST).entity(error).build();
         }
     }
 
@@ -72,11 +74,5 @@ public class ImportController {
             throw new RuntimeException("Invalid token");
         }
         return authHeader.substring("Bearer ".length()).trim();
-    }
-
-    private Response errorResponse(String message) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", message);
-        return Response.status(Response.Status.BAD_REQUEST).entity(error).build();
     }
 }

@@ -4,6 +4,7 @@ import com.github.arseeenyyy.models.ImportOperation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped
@@ -12,39 +13,24 @@ public class ImportRepository {
     @PersistenceContext
     private EntityManager em;
 
-    public void save(ImportOperation op) {
+    @Transactional
+    public ImportOperation save(ImportOperation op) {
         em.persist(op);
+        return op;
     }
 
-    public List<ImportOperation> findAllPaged(int page, int size) {
+    public List<ImportOperation> findByUserId(Long userId) {
         return em.createQuery(
-                        "SELECT i FROM ImportOperation i ORDER BY i.timestamp DESC",
-                        ImportOperation.class
-                )
-                .setFirstResult((page - 1) * size)
-                .setMaxResults(size)
+                "SELECT i FROM ImportOperation i WHERE i.userId = :userId ORDER BY i.id DESC",
+                ImportOperation.class)
+                .setParameter("userId", userId)
                 .getResultList();
     }
 
-    public List<ImportOperation> findByUserIdPaged(Long userId, int page, int size) {
+    public List<ImportOperation> findAll() {
         return em.createQuery(
-                        "SELECT i FROM ImportOperation i WHERE i.user.id = :userId ORDER BY i.timestamp DESC",
-                        ImportOperation.class
-                )
-                .setParameter("userId", userId)
-                .setFirstResult((page - 1) * size)
-                .setMaxResults(size)
+                "SELECT i FROM ImportOperation i ORDER BY i.id DESC",
+                ImportOperation.class)
                 .getResultList();
-    }
-
-    public long countAll() {
-        return em.createQuery("SELECT COUNT(i) FROM ImportOperation i", Long.class)
-                .getSingleResult();
-    }
-
-    public long countByUserId(Long userId) {
-        return em.createQuery("SELECT COUNT(i) FROM ImportOperation i WHERE i.user.id = :userId", Long.class)
-                .setParameter("userId", userId)
-                .getSingleResult();
     }
 }

@@ -3,10 +3,9 @@ package com.github.arseeenyyy.repository;
 import com.github.arseeenyyy.models.Color;
 import com.github.arseeenyyy.models.Dragon;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.UserTransaction;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped 
@@ -15,23 +14,10 @@ public class DragonRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Inject
-    private UserTransaction userTransaction;
-
+    @Transactional
     public Dragon save(Dragon dragon) {
-        try {
-            userTransaction.begin();
-            entityManager.persist(dragon);
-            userTransaction.commit();
-            return dragon;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Save failed", e);
-        }
+        entityManager.persist(dragon);
+        return dragon;
     } 
 
     public List<Dragon> findAll() {
@@ -43,38 +29,17 @@ public class DragonRepository {
         return entityManager.find(Dragon.class, id);
     }
 
+    @Transactional
     public void delete(Long id) {
-        try {
-            userTransaction.begin();
-            Dragon dragon = entityManager.find(Dragon.class, id);
-            if (dragon != null) {
-                entityManager.remove(dragon);
-            }
-            userTransaction.commit();
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Delete failed", e);
+        Dragon dragon = entityManager.find(Dragon.class, id);
+        if (dragon != null) {
+            entityManager.remove(dragon);
         }
     }
 
+    @Transactional
     public Dragon update(Dragon dragon) {
-        try {
-            userTransaction.begin();
-            Dragon merged = entityManager.merge(dragon);
-            userTransaction.commit();
-            return merged;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception ex) {
-                throw new RuntimeException("Rollback failed", ex);
-            }
-            throw new RuntimeException("Update failed", e);
-        }
+        return entityManager.merge(dragon);
     }
 
     public List<Dragon> findByColor(String color) {
