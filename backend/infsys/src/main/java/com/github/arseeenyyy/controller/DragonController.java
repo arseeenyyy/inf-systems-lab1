@@ -25,6 +25,14 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             List<DragonResponseDto> dragons = dragonService.getAll(jwtToken);
             return Response.ok(dragons).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error getting dragons: " + e.getMessage())
@@ -40,6 +48,14 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             DragonResponseDto dragon = dragonService.getById(id, jwtToken);
             return Response.ok(dragon).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error getting dragon: " + e.getMessage())
@@ -54,6 +70,14 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             DragonResponseDto response = dragonService.create(requestDto, jwtToken);
             return Response.status(Response.Status.CREATED).entity(response).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error creating dragon: " + e.getMessage())
@@ -70,6 +94,14 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             DragonResponseDto response = dragonService.update(id, requestDto, jwtToken);
             return Response.ok(response).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error updating dragon: " + e.getMessage())
@@ -85,12 +117,21 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             dragonService.delete(id, jwtToken);
             return Response.noContent().build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error deleting dragon: " + e.getMessage())
                     .build();
         }
     }
+
     @DELETE
     @Path("/color/{color}/all")
     public Response deleteAllByColor(@PathParam("color") String color,
@@ -99,6 +140,14 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             dragonService.deleteAllByColor(color, jwtToken);
             return Response.noContent().build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error deleting dragons by color: " + e.getMessage())
@@ -114,12 +163,21 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             dragonService.deleteOneByColor(color, jwtToken);
             return Response.noContent().build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error deleting one dragon by color: " + e.getMessage())
                     .build();
         }
     }
+
     @GET
     @Path("/name-starts-with/{substring}")
     public Response findByNameStartingWith(@PathParam("substring") String substring,
@@ -128,6 +186,14 @@ public class DragonController {
             String jwtToken = extractToken(authHeader);
             List<DragonResponseDto> dragons = dragonService.findByNameStartingWith(substring, jwtToken);
             return Response.ok(dragons).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error searching dragons by name: " + e.getMessage())
@@ -136,6 +202,9 @@ public class DragonController {
     }
 
     private String extractToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ForbiddenException("Missing or invalid authorization header");
+        }
         return authHeader.substring("Bearer ".length()).trim();
     }
 }

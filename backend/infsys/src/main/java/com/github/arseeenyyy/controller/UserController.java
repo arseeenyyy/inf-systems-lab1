@@ -36,9 +36,10 @@ public class UserController {
     public Response login(@Valid LoginRequestDto loginRequest) {
         try {
             UserResponseDto response = userService.login(loginRequest);
+            System.out.println(loginRequest.getUsername());
             return Response.ok(response).build();
         } catch (Exception e) {
-            return Response.status(Response.Status.UNAUTHORIZED)
+            return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Authentication failed: " + e.getMessage())
                     .build();
         }

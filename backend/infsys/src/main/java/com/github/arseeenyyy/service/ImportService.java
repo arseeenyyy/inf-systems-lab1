@@ -64,11 +64,11 @@ public class ImportService {
             }
 
             op.setStatus(ImportStatus.SUCCESS);
-            op.setAddedCount(savedCount); // Только для успешных операций
+            op.setAddedCount(savedCount); 
 
         } catch (Exception e) {
             op.setStatus(ImportStatus.FAILED);
-            op.setAddedCount(null); // Для неудачных операций - null
+            op.setAddedCount(null); 
         }
 
         return importRepository.save(op);
@@ -80,7 +80,7 @@ public class ImportService {
         ImportOperation op = new ImportOperation();
         op.setUserId(userId);
         op.setStatus(ImportStatus.FAILED);
-        op.setAddedCount(null); // Для неудачных операций - null
+        op.setAddedCount(null); 
         
         return importRepository.save(op);
     }
@@ -88,14 +88,12 @@ public class ImportService {
     private void createDragonWithRelations(JsonNode json, Long userId) {
         User user = userRepository.findById(userId);
 
-        // Coordinates
         Coordinates coordinates = new Coordinates();
         coordinates.setX(json.get("coordinates").get("x").asDouble());
         coordinates.setY(json.get("coordinates").get("y").asDouble());
         coordinates.setUser(user);
         coordinatesRepository.save(coordinates);
 
-        // DragonCave
         DragonCave cave = null;
         if (json.has("cave") && !json.get("cave").isNull()) {
             cave = new DragonCave();
@@ -104,7 +102,6 @@ public class ImportService {
             dragonCaveRepository.save(cave);
         }
 
-        // DragonHead
         DragonHead head = null;
         if (json.has("head") && !json.get("head").isNull()) {
             head = new DragonHead();
@@ -116,13 +113,11 @@ public class ImportService {
             dragonHeadRepository.save(head);
         }
 
-        // Person (killer)
         Person killer = null;
         if (json.has("killer") && !json.get("killer").isNull()) {
             killer = createPerson(json.get("killer"), user);
         }
 
-        // Dragon
         Dragon dragon = new Dragon();
         dragon.setName(json.get("name").asText());
         dragon.setCoordinates(coordinates);

@@ -23,6 +23,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.ForbiddenException;
 
 @ApplicationScoped
 public class DragonService {
@@ -53,7 +54,7 @@ public class DragonService {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new ForbiddenException("User not found");
         }
 
         Coordinates coordinates = coordinatesRepository.findById(requestDto.getCoordinatesId());
@@ -75,7 +76,7 @@ public class DragonService {
         User user = userRepository.findById(userId);
         
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new ForbiddenException("User not found");
         }
 
         List<Dragon> dragons;
@@ -190,13 +191,14 @@ public class DragonService {
                 .map(DragonMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
+    
     @Transactional
     public void deleteAllByColor(String color, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
         
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new ForbiddenException("User not found");
         }
 
         List<Dragon> dragonsToDelete;
@@ -219,7 +221,7 @@ public class DragonService {
         User user = userRepository.findById(userId);
         
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new ForbiddenException("User not found");
         }
 
         List<Dragon> dragons;
@@ -236,6 +238,7 @@ public class DragonService {
             deleteDragonWithCleanup(dragonToDelete.getId());
         }
     }
+    
     private void deleteDragonWithCleanup(Long dragonId) {
         Dragon dragon = dragonRepository.findById(dragonId);
         if (dragon != null) {
@@ -256,12 +259,13 @@ public class DragonService {
             dragonRepository.delete(dragonId);
         }
     }
+    
     public List<DragonResponseDto> findByNameStartingWith(String substring, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
         
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new ForbiddenException("User not found");
         }
 
         List<Dragon> dragons;
@@ -283,7 +287,7 @@ public class DragonService {
         User user = userRepository.findById(userId);
         
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new ForbiddenException("User not found");
         }
 
         if ("ADMIN".equals(user.getRole().name())) {
@@ -291,7 +295,7 @@ public class DragonService {
         }
 
         if (!dragon.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Access denied: You don't have permission to access this dragon");
+            throw new ForbiddenException("Access denied: You don't have permission to access this dragon");
         }
     }
 }

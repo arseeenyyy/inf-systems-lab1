@@ -1,4 +1,3 @@
-// src/pages/AuthPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
@@ -11,58 +10,40 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleAuth = async (isRegister) => {
     setLoading(true);
     setError('');
 
     if (!username.trim() || !password.trim()) {
-      setError('username_and_password_required');
+      setError('Username and password are required');
       setLoading(false);
       return;
     }
 
     try {
-      await apiClient.register({ 
-        username: username.trim(), 
-        password: password.trim(), 
-        isAdmin 
-      });
-      setError('registration_successful');
-      setTimeout(() => {
-        setError('');
-        handleLogin(e);
-      }, 1000);
+      if (isRegister) {
+        await apiClient.register({ 
+          username: username.trim(), 
+          password: password.trim(), 
+          isAdmin 
+        });
+      } else {
+        await apiClient.login({ 
+          username: username.trim(), 
+          password: password.trim() 
+        });
+      }
+      navigate('/dragons');
     } catch (err) {
-      setError(`registration_failed: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    if (!username.trim() || !password.trim()) {
-      setError('username_and_password_required');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      await apiClient.login({ 
-        username: username.trim(), 
-        password: password.trim() 
-      });
-      
-      setError('login_successful');
-      setTimeout(() => {
-        navigate('/dragons');
-      }, 1000);
-    } catch (err) {
-      setError(`login_failed: ${err.message}`);
+      if (err.message.includes('Username already exists') || 
+          err.message.includes('Invalid username or password') ||
+          err.message.includes('Authentication failed') ||
+          err.message.includes('400') || 
+          err.message.includes('401')) {
+        setError('Invalid credentials');
+      } else {
+        setError(`Authentication failed: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -72,12 +53,18 @@ function AuthPage() {
     setError('');
   };
 
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
   return (
     <div className="layout">
       <div className="main" style={{ maxWidth: '500px', margin: '100px auto' }}>
         <div className="panel">
           
-          <form className="form">
+          <form className="form" onSubmit={handleFormSubmit} noValidate>
             <div className="form-group">
               <label className="form-label">[username]</label>
               <input
@@ -127,7 +114,7 @@ function AuthPage() {
                 type="button" 
                 className="btn btn-primary" 
                 style={{ flex: 1 }}
-                onClick={handleRegister}
+                onClick={() => handleAuth(true)}
                 disabled={loading}
               >
                 {loading ? '[processing...]' : '[register]'}
@@ -136,21 +123,21 @@ function AuthPage() {
                 type="button" 
                 className="btn btn-primary" 
                 style={{ flex: 1 }}
-                onClick={handleLogin}
+                onClick={() => handleAuth(false)}
                 disabled={loading}
               >
                 {loading ? '[processing...]' : '[login]'}
               </button>
             </div>
 
-            <div className="error-text" style={{ 
-              minHeight: '20px', 
-              textAlign: 'center', 
-              marginTop: '15px',
-              color: error && error.includes('successful') ? '#00ff00' : '#ff4444'
-            }}>
-              {error}
-            </div>
+            {error && (
+              <div className="error-text" style={{ 
+                textAlign: 'center', 
+                marginTop: '15px'
+              }}>
+                {error}
+              </div>
+            )}
           </form>
         </div>
       </div>
