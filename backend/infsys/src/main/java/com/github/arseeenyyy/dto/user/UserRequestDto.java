@@ -1,10 +1,10 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.user;
 
-import java.util.List;
+
+import com.github.arseeenyyy.models.Role;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,12 +12,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeamCreateRequestDto {
-    @NotNull
+public class UserRequestDto {
     @NotBlank
-    private String name;
+    private String username;
+
+    @NotBlank
+    private String password;
 
     @NotNull
-    @Size(min = 1) 
-    private List<Long> personsIds;
+    private Role role;
 }

@@ -1,14 +1,17 @@
 package com.github.arseeenyyy.controller;
 
-import com.github.arseeenyyy.dto.DragonCaveRequestDto;
-import com.github.arseeenyyy.dto.DragonCaveResponseDto;
+import java.util.List;
+
+import com.github.arseeenyyy.dto.dragonCave.DragonCaveRequestDto;
+import com.github.arseeenyyy.dto.dragonCave.DragonCaveResponseDto;
 import com.github.arseeenyyy.service.DragonCaveService;
+
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 
 @Path("/caves")
 @Produces(MediaType.APPLICATION_JSON)
@@ -19,20 +22,39 @@ public class DragonCaveController {
     private DragonCaveService caveService;
     
     @GET
-    public List<DragonCaveResponseDto> getAll() {
-        return caveService.getAll();
+    public Response getAll(@HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            String jwtToken = extractToken(authHeader);
+            List<DragonCaveResponseDto> caves = caveService.getAll(jwtToken);
+            return Response.ok(caves).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error getting caves: " + e.getMessage())
+                    .build();
+        }
     }
     
     @GET
     @Path("/{id}")
-    public DragonCaveResponseDto getById(@PathParam("id") Long id) {
-        return caveService.getById(id);
+    public Response getById(@PathParam("id") Long id, 
+                           @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            String jwtToken = extractToken(authHeader);
+            DragonCaveResponseDto cave = caveService.getById(id, jwtToken);
+            return Response.ok(cave).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error getting cave: " + e.getMessage())
+                    .build();
+        }
     }
     
     @POST
-    public Response create(@Valid DragonCaveRequestDto requestDto) {
+    public Response create(@Valid DragonCaveRequestDto requestDto,
+                          @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
-            DragonCaveResponseDto response = caveService.create(requestDto);
+            String jwtToken = extractToken(authHeader);
+            DragonCaveResponseDto response = caveService.create(requestDto, jwtToken);
             return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -43,9 +65,12 @@ public class DragonCaveController {
     
     @PUT
     @Path("/{id}")
-    public Response update(@PathParam("id") Long id, DragonCaveRequestDto requestDto) {
+    public Response update(@PathParam("id") Long id, 
+                          @Valid DragonCaveRequestDto requestDto,
+                          @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
-            DragonCaveResponseDto response = caveService.update(id, requestDto);
+            String jwtToken = extractToken(authHeader);
+            DragonCaveResponseDto response = caveService.update(id, requestDto, jwtToken);
             return Response.ok(response).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -56,14 +81,20 @@ public class DragonCaveController {
     
     @DELETE
     @Path("/{id}")
-    public Response delete(@PathParam("id") Long id) {
+    public Response delete(@PathParam("id") Long id,
+                          @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
-            caveService.delete(id);
+            String jwtToken = extractToken(authHeader);
+            caveService.delete(id, jwtToken);
             return Response.noContent().build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Error deleting dragon cave: " + e.getMessage())
                     .build();
         }
+    }
+
+    private String extractToken(String authHeader) {
+        return authHeader.substring("Bearer ".length()).trim();
     }
 }

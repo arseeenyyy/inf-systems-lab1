@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.dragon;
 
 import com.github.arseeenyyy.models.Color;
 import com.github.arseeenyyy.models.DragonCharacter;
@@ -34,4 +34,5 @@ public class DragonRequestDto {
 
     private DragonCharacter character;
     private Long headId;
+    private Long userId;
 }

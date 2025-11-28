@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.user;
 
 
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DragonCaveResponseDto {
-    private Long id;
-    private long numberOfTreasures;
+public class UserResponseDto {
+    private Long userId;
+    private String jwt;
 }

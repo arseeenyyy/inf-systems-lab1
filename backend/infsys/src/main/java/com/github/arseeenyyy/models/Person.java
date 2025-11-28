@@ -56,4 +56,8 @@ public class Person {
     @ManyToOne
     @JoinColumn(name = "team_id")
     private Team team;
+
+    @ManyToOne 
+    @JoinColumn(name = "user_id", nullable = false) 
+    private User user; 
 }

@@ -1,26 +1,28 @@
 package com.github.arseeenyyy.service;
 
-import com.github.arseeenyyy.dto.DragonRequestDto;
-import com.github.arseeenyyy.dto.DragonResponseDto;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.arseeenyyy.dto.dragon.DragonRequestDto;
+import com.github.arseeenyyy.dto.dragon.DragonResponseDto;
 import com.github.arseeenyyy.mapper.DragonMapper;
 import com.github.arseeenyyy.models.Coordinates;
 import com.github.arseeenyyy.models.Dragon;
 import com.github.arseeenyyy.models.DragonCave;
 import com.github.arseeenyyy.models.DragonHead;
 import com.github.arseeenyyy.models.Person;
+import com.github.arseeenyyy.models.User;
 import com.github.arseeenyyy.repository.CoordinatesRepository;
 import com.github.arseeenyyy.repository.DragonCaveRepository;
 import com.github.arseeenyyy.repository.DragonHeadRepository;
 import com.github.arseeenyyy.repository.DragonRepository;
 import com.github.arseeenyyy.repository.PersonRepository;
+import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import jakarta.ws.rs.ForbiddenException;
 
 @ApplicationScoped
 public class DragonService {
@@ -39,51 +41,72 @@ public class DragonService {
 
     @Inject  
     private DragonHeadRepository dragonHeadRepository;
-    
 
-    @Transactional
-    public DragonResponseDto create(DragonRequestDto requestDto) {
+    @Inject
+    private UserRepository userRepository;
+
+    @Inject
+    private JwtService jwtService;
+
+    public DragonResponseDto create(DragonRequestDto requestDto, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            throw new ForbiddenException("User not found");
+        }
+
         Coordinates coordinates = coordinatesRepository.findById(requestDto.getCoordinatesId());
-        Person killer = personRepository.findById(requestDto.getKillerId());
-        DragonCave cave = dragonCaveRepository.findById(requestDto.getCaveId());
-        DragonHead head = dragonHeadRepository.findById(requestDto.getHeadId());
+        Person killer = requestDto.getKillerId() != null ? personRepository.findById(requestDto.getKillerId()) : null;
+        DragonCave cave = requestDto.getCaveId() != null ? dragonCaveRepository.findById(requestDto.getCaveId()) : null;
+        DragonHead head = requestDto.getHeadId() != null ? dragonHeadRepository.findById(requestDto.getHeadId()) : null;
 
         if (coordinates == null) {
             throw new NotFoundException("incorrect id's of related objects");
         }
         
-        Dragon dragon = DragonMapper.toEntity(requestDto, coordinates, cave, killer, head);
+        Dragon dragon = DragonMapper.toEntity(requestDto, coordinates, cave, killer, head, user);
         Dragon savedDragon = dragonRepository.save(dragon);
         return DragonMapper.toResponseDto(savedDragon);
     }
     
-    @Transactional
-    public List<DragonResponseDto> getAll() {
-        List<Dragon> dragons = dragonRepository.findAll();
+    public List<DragonResponseDto> getAll(String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new ForbiddenException("User not found");
+        }
+
+        List<Dragon> dragons;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragons = dragonRepository.findAll();
+        } else {
+            dragons = dragonRepository.findByUserId(userId);
+        }
+        
         return dragons.stream()
                 .map(DragonMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
     
-    public DragonResponseDto getById(Long id) {
+    public DragonResponseDto getById(Long id, String jwtToken) {
         Dragon dragon = dragonRepository.findById(id);
         if (dragon == null) {
             throw new NotFoundException("Dragon not found with id: " + id); 
         }
+
+        checkUserAccess(dragon, jwtToken);
+        
         return DragonMapper.toResponseDto(dragon);
     }
-    
-    // @Transactional
-    // public void delete(Long id) {
-    //     dragonRepository.delete(id);
-    // }
 
-    @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, String jwtToken) {
         Dragon dragon = dragonRepository.findById(id);
         if (dragon == null) {
             throw new NotFoundException("Dragon not found with id: " + id);
         }
+
+        checkUserAccess(dragon, jwtToken);
         
         DragonCave cave = dragon.getCave();
         Person killer = dragon.getKiller();
@@ -126,52 +149,147 @@ public class DragonService {
         }
     }
     
-    @Transactional
-    public DragonResponseDto update(Long id, DragonRequestDto requestDto) {
+    public DragonResponseDto update(Long id, DragonRequestDto requestDto, String jwtToken) {
         Dragon existingDragon = dragonRepository.findById(id);
         if (existingDragon == null) {
             throw new NotFoundException("Dragon not found with id: " + id);
-        }        
+        }
+
+        checkUserAccess(existingDragon, jwtToken);
+        
         existingDragon.setName(requestDto.getName());
         existingDragon.setAge(requestDto.getAge());
         existingDragon.setWeight(requestDto.getWeight());
         existingDragon.setColor(requestDto.getColor());
         existingDragon.setCharacter(requestDto.getCharacter());
-        existingDragon.setCave(dragonCaveRepository.findById(requestDto.getCaveId()));
-        existingDragon.setHead(dragonHeadRepository.findById(requestDto.getHeadId()));
-        existingDragon.setKiller(personRepository.findById(requestDto.getKillerId()));
+        existingDragon.setCave(requestDto.getCaveId() != null ? dragonCaveRepository.findById(requestDto.getCaveId()) : null);
+        existingDragon.setHead(requestDto.getHeadId() != null ? dragonHeadRepository.findById(requestDto.getHeadId()) : null);
+        existingDragon.setKiller(requestDto.getKillerId() != null ? personRepository.findById(requestDto.getKillerId()) : null);
         
         Dragon updatedDragon = dragonRepository.update(existingDragon);
         return DragonMapper.toResponseDto(updatedDragon);
     }
     
-    public List<DragonResponseDto> findByColor(String color) {
-        List<Dragon> dragons = dragonRepository.findByColor(color);
+    public List<DragonResponseDto> findByColor(String color, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        List<Dragon> dragons;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragons = dragonRepository.findByColor(color);
+        } else {
+            dragons = dragonRepository.findByColor(color).stream()
+                    .filter(d -> d.getUser().getId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+        
         return dragons.stream()
                 .map(DragonMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
-    @Transactional
-    public void deleteAllByColor(String color) {
-        List<Dragon> dragons = dragonRepository.findByColor(color);
-        for (Dragon dragon : dragons) {
-            dragonRepository.delete(dragon.getId());
+    
+   public void deleteAllByColor(String color, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new ForbiddenException("User not found");
+        }
+
+        List<Dragon> dragonsToDelete;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragonsToDelete = dragonRepository.findByColor(color);
+        } else {
+            dragonsToDelete = dragonRepository.findByColor(color).stream()
+                    .filter(d -> d.getUser().getId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+
+        for (Dragon dragon : dragonsToDelete) {
+            deleteDragonWithCleanup(dragon.getId());
         }
     }
-    
-    @Transactional
-    public void deleteOneByColor(String color) {
-        List<Dragon> dragons = dragonRepository.findByColor(color);
+
+    public void deleteOneByColor(String color, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new ForbiddenException("User not found");
+        }
+
+        List<Dragon> dragons;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragons = dragonRepository.findByColor(color);
+        } else {
+            dragons = dragonRepository.findByColor(color).stream()
+                    .filter(d -> d.getUser().getId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+
         if (!dragons.isEmpty()) {
-            dragonRepository.delete(dragons.get(0).getId());
+            Dragon dragonToDelete = dragons.get(0); 
+            deleteDragonWithCleanup(dragonToDelete.getId());
         }
     }
     
-    @Transactional
-    public List<DragonResponseDto> findByNameStartingWith(String substring) {
-        List<Dragon> dragons = dragonRepository.findByNameStartingWith(substring);
+    private void deleteDragonWithCleanup(Long dragonId) {
+        Dragon dragon = dragonRepository.findById(dragonId);
+        if (dragon != null) {
+            DragonCave cave = dragon.getCave();
+            Person killer = dragon.getKiller();
+            DragonHead head = dragon.getHead();
+            
+            if (cave != null) {
+                clearCaveReferences(cave.getId());
+            }
+            if (head != null) {
+                clearHeadReferences(head.getId());
+            }
+            if (killer != null) {
+                clearKillerReferences(killer.getId());
+            }
+            
+            dragonRepository.delete(dragonId);
+        }
+    }
+    
+    public List<DragonResponseDto> findByNameStartingWith(String substring, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new ForbiddenException("User not found");
+        }
+
+        List<Dragon> dragons;
+        if ("ADMIN".equals(user.getRole().name())) {
+            dragons = dragonRepository.findByNameStartingWith(substring);
+        } else {
+            dragons = dragonRepository.findByNameStartingWith(substring).stream()
+                    .filter(d -> d.getUser().getId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+        
         return dragons.stream()
                 .map(DragonMapper::toResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    private void checkUserAccess(Dragon dragon, String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new ForbiddenException("User not found");
+        }
+
+        if ("ADMIN".equals(user.getRole().name())) {
+            return;
+        }
+
+        if (!dragon.getUser().getId().equals(userId)) {
+            throw new ForbiddenException("Access denied: You don't have permission to access this dragon");
+        }
     }
 }

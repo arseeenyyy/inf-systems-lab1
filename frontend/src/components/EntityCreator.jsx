@@ -38,7 +38,6 @@ const EntityCreator = ({ onEntityCreated }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // очищаем ошибку для этого поля
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }

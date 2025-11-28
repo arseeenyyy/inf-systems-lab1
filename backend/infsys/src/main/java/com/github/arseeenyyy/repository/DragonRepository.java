@@ -3,9 +3,10 @@ package com.github.arseeenyyy.repository;
 import com.github.arseeenyyy.models.Color;
 import com.github.arseeenyyy.models.Dragon;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.util.List;
 
 @ApplicationScoped 
@@ -14,9 +15,23 @@ public class DragonRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
+    @Inject
+    private UserTransaction userTransaction;
+
     public Dragon save(Dragon dragon) {
-        entityManager.persist(dragon); 
-        return dragon;
+        try {
+            userTransaction.begin();
+            entityManager.persist(dragon);
+            userTransaction.commit();
+            return dragon;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to save Dragon", e);
+        }
     } 
 
     public List<Dragon> findAll() {
@@ -29,17 +44,40 @@ public class DragonRepository {
     }
 
     public void delete(Long id) {
-        Dragon dragon = entityManager.find(Dragon.class, id);
-        if (dragon != null) {
-            entityManager.remove(dragon);
+        try {
+            userTransaction.begin();
+            Dragon dragon = entityManager.find(Dragon.class, id);
+            if (dragon != null) {
+                entityManager.remove(dragon);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to delete Dragon", e);
         }
     }
 
     public Dragon update(Dragon dragon) {
-        return entityManager.merge(dragon);
+        try {
+            userTransaction.begin();
+            Dragon updated = entityManager.merge(dragon);
+            userTransaction.commit();
+            return updated;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to update Dragon", e);
+        }
     }
 
-     public List<Dragon> findByColor(String color) {
+    public List<Dragon> findByColor(String color) {
         try {
             Color colorEnum = Color.valueOf(color.toUpperCase());
             return entityManager.createQuery(
@@ -50,13 +88,15 @@ public class DragonRepository {
             return List.of();
         }
     }
+
     public List<Dragon> findByNameStartingWith(String substring) {
         return entityManager.createQuery(
             "SELECT d FROM Dragon d WHERE LOWER(d.name) LIKE LOWER(:substring)", Dragon.class)
             .setParameter("substring", substring + "%")
             .getResultList();
     }
-        public List<Dragon> findByCaveId(Long caveId) {
+
+    public List<Dragon> findByCaveId(Long caveId) {
         return entityManager.createQuery(
             "SELECT d FROM Dragon d WHERE d.cave.id = :caveId", Dragon.class)
             .setParameter("caveId", caveId)
@@ -74,6 +114,13 @@ public class DragonRepository {
         return entityManager.createQuery(
             "SELECT d FROM Dragon d WHERE d.head.id = :headId", Dragon.class)
             .setParameter("headId", headId)
+            .getResultList();
+    }
+
+    public List<Dragon> findByUserId(Long userId) {
+        return entityManager.createQuery(
+            "SELECT d FROM Dragon d WHERE d.user.id = :userId", Dragon.class)
+            .setParameter("userId", userId)
             .getResultList();
     }
 }

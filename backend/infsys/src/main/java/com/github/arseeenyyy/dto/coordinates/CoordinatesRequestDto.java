@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.coordinates;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;

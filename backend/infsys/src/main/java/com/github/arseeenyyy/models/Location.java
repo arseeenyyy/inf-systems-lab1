@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -35,4 +37,8 @@ public class Location {
     @Column(name = "name") 
     @NotBlank
     private String name; //Строка не может быть пустой, Поле может быть null
+
+    @ManyToOne 
+    @JoinColumn(name = "user_id", nullable = false) 
+    private User user;
 }

@@ -1,5 +1,9 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.dragon;
 
+import com.github.arseeenyyy.dto.coordinates.CoordinatesResponseDto;
+import com.github.arseeenyyy.dto.dragonCave.DragonCaveResponseDto;
+import com.github.arseeenyyy.dto.dragonHead.DragonHeadResponseDto;
+import com.github.arseeenyyy.dto.person.PersonResponseDto;
 import com.github.arseeenyyy.models.Color;
 import com.github.arseeenyyy.models.DragonCharacter;
 
@@ -22,4 +26,5 @@ public class DragonResponseDto {
     private Color color;
     private DragonCharacter character;
     private DragonHeadResponseDto head;
+    private Long userId;
 }

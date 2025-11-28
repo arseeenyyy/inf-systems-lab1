@@ -40,7 +40,6 @@ const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, h
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // очищаем ошибку для этого поля
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -49,11 +48,9 @@ const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, h
   const validateAndSubmit = (data) => {
     const newErrors = {};
 
-    // Обязательные поля
     if (!data.name.trim()) newErrors.name = 'required';
     if (!data.coordinatesId) newErrors.coordinatesId = 'required';
 
-    // Числа
     const age = parseInt(data.age);
     const weight = parseFloat(data.weight);
     if (isNaN(age) || age <= 0) newErrors.age = '> 0';
@@ -65,7 +62,7 @@ const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, h
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); // блокируем HTML5 validation
+    e.stopPropagation(); 
     
     setErrors({});
 
@@ -100,7 +97,6 @@ const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, h
           value={formData.name}
           onChange={handleChange}
           className={`form-input ${errors.name ? 'error' : ''}`}
-          // убираем required - используем свою валидацию
         />
         {errors.name && <span className="error-text">name: {errors.name}</span>}
       </div>
@@ -112,7 +108,6 @@ const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, h
           value={formData.coordinatesId}
           onChange={handleChange}
           className={`form-select ${errors.coordinatesId ? 'error' : ''}`}
-          // убираем required
         >
           <option value=""></option>
           {coordinates.map(coord => (
@@ -134,7 +129,6 @@ const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, h
             onChange={handleChange}
             className={`form-input ${errors.age ? 'error' : ''}`}
             placeholder="> 0"
-            // убираем required
           />
           {errors.age && <span className="error-text">age: {errors.age}</span>}
         </div>
@@ -148,7 +142,6 @@ const DragonForm = ({ dragon, onSubmit, onCancel, coordinates, caves, persons, h
             onChange={handleChange}
             className={`form-input ${errors.weight ? 'error' : ''}`}
             placeholder="> 0"
-            // убираем required
           />
           {errors.weight && <span className="error-text">weight: {errors.weight}</span>}
         </div>

@@ -76,10 +76,14 @@ public class Dragon {
     @JoinColumn(name = "head_id")
     private DragonHead head;
 
+    @ManyToOne 
+    @JoinColumn(name = "user_id", nullable = false) 
+    private User user;
+
     @Builder
     public Dragon(String name, Coordinates coordinates, DragonCave cave, 
                  Person killer, Integer age, double weight, Color color, 
-                 DragonCharacter character, DragonHead head) {
+                 DragonCharacter character, DragonHead head, User user) {
         this.name = name;
         this.coordinates = coordinates;
         this.cave = cave;
@@ -90,5 +94,6 @@ public class Dragon {
         this.character = character;
         this.head = head;
         this.creationDate = java.time.LocalDate.now(); 
+        this.user = user;
     }
 }

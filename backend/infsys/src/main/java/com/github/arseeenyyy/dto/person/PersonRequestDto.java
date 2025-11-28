@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.person;
 
 import com.github.arseeenyyy.models.Color;
 import com.github.arseeenyyy.models.Country;

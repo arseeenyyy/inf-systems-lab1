@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.team;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

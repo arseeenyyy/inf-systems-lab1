@@ -1,4 +1,4 @@
-package com.github.arseeenyyy.dto;
+package com.github.arseeenyyy.dto.dragonHead;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
