@@ -11,9 +11,10 @@ import com.github.arseeenyyy.models.Team;
 import com.github.arseeenyyy.models.User;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 
 @ApplicationScoped
 public class TeamRepository {
@@ -21,10 +22,23 @@ public class TeamRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Transactional
+    @Inject
+    private UserTransaction userTransaction;
+
     public Team save(Team team) {
-        entityManager.persist(team);
-        return team;
+        try {
+            userTransaction.begin();
+            entityManager.persist(team);
+            userTransaction.commit();
+            return team;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to save Team", e);
+        }
     }
 
     public List<Team> findAll() {
@@ -74,17 +88,38 @@ public class TeamRepository {
         return entityManager.find(Team.class, id);
     }
 
-    @Transactional
     public void delete(Long id) {
-        Team team = entityManager.find(Team.class, id);
-        if (team != null) {
-            entityManager.remove(team);
+        try {
+            userTransaction.begin();
+            Team team = entityManager.find(Team.class, id);
+            if (team != null) {
+                entityManager.remove(team);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to delete Team", e);
         }
     }
 
-    @Transactional
     public Team update(Team team) {
-        return entityManager.merge(team);
+        try {
+            userTransaction.begin();
+            Team updated = entityManager.merge(team);
+            userTransaction.commit();
+            return updated;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to update Team", e);
+        }
     }
     
     public boolean existsByName(String name) {

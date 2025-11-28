@@ -13,7 +13,6 @@ import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
@@ -28,7 +27,6 @@ public class DragonHeadService {
     @Inject
     private JwtService jwtService;
     
-    @Transactional
     public DragonHeadResponseDto create(DragonHeadRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -67,7 +65,6 @@ public class DragonHeadService {
         return DragonHeadMapper.toResponseDto(head);
     }
     
-    @Transactional
     public void delete(Long id, String jwtToken) {
         DragonHead head = repository.findById(id);
         if (head == null) {
@@ -79,7 +76,6 @@ public class DragonHeadService {
         repository.delete(id);
     }
     
-    @Transactional
     public DragonHeadResponseDto update(Long id, DragonHeadRequestDto requestDto, String jwtToken) {
         DragonHead existingHead = repository.findById(id);
         if (existingHead == null) {

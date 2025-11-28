@@ -2,9 +2,10 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.Location;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.util.List;
 
 @ApplicationScoped
@@ -13,10 +14,23 @@ public class LocationRepository {
     @PersistenceContext
     private EntityManager entityManager;
     
-    @Transactional
+    @Inject
+    private UserTransaction userTransaction;
+
     public Location save(Location location) {
-        entityManager.persist(location);
-        return location;
+        try {
+            userTransaction.begin();
+            entityManager.persist(location);
+            userTransaction.commit();
+            return location;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to save Location", e);
+        }
     }
     
     public List<Location> findAll() {
@@ -31,17 +45,38 @@ public class LocationRepository {
         return entityManager.find(Location.class, id);
     }
 
-    @Transactional
     public void delete(Long id) {
-        Location location = entityManager.find(Location.class, id);
-        if (location != null) {
-            entityManager.remove(location);
+        try {
+            userTransaction.begin();
+            Location location = entityManager.find(Location.class, id);
+            if (location != null) {
+                entityManager.remove(location);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to delete Location", e);
         }
     }
     
-    @Transactional
     public Location update(Location location) {
-        return entityManager.merge(location);
+        try {
+            userTransaction.begin();
+            Location updated = entityManager.merge(location);
+            userTransaction.commit();
+            return updated;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to update Location", e);
+        }
     }
 
     public List<Location> findByUserId(Long userId) {

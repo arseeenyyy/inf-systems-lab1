@@ -15,7 +15,6 @@ import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
@@ -33,7 +32,6 @@ public class PersonService {
     @Inject
     private JwtService jwtService;
     
-    @Transactional
     public PersonResponseDto create(PersonRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -75,7 +73,6 @@ public class PersonService {
         return PersonMapper.toResponseDto(person);
     }
     
-    @Transactional
     public void delete(Long id, String jwtToken) {
         Person person = personRepository.findById(id);
         if (person == null) {
@@ -87,7 +84,6 @@ public class PersonService {
         personRepository.delete(id);
     }
     
-    @Transactional
     public PersonResponseDto update(Long id, PersonRequestDto requestDto, String jwtToken) {
         Person existingPerson = personRepository.findById(id); 
         if (existingPerson == null) {

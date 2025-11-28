@@ -13,7 +13,6 @@ import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
@@ -28,7 +27,6 @@ public class LocationService {
     @Inject
     private JwtService jwtService;
     
-    @Transactional
     public LocationResponseDto createLocation(LocationRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -67,7 +65,6 @@ public class LocationService {
         return LocationMapper.toResponseDto(location);
     }
     
-    @Transactional
     public void deleteLocation(Long id, String jwtToken) {
         Location location = locationRepository.findById(id);
         if (location == null) {
@@ -79,7 +76,6 @@ public class LocationService {
         locationRepository.delete(id);
     }
     
-    @Transactional
     public LocationResponseDto updateLocation(Long id, LocationRequestDto requestDto, String jwtToken) {
         Location existingLocation = locationRepository.findById(id);
         if (existingLocation == null) {

@@ -13,7 +13,6 @@ import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
@@ -28,7 +27,6 @@ public class CoordinatesService {
     @Inject
     private JwtService jwtService;
         
-    @Transactional
     public CoordinatesResponseDto create(CoordinatesRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -68,7 +66,6 @@ public class CoordinatesService {
         return CoordinatesMapper.toResponseDto(coordinates);
     }
 
-    @Transactional
     public void delete(Long id, String jwtToken) {
         Coordinates coordinates = repository.findById(id);
         if (coordinates == null) {
@@ -80,7 +77,6 @@ public class CoordinatesService {
         repository.delete(id);
     }
 
-    @Transactional
     public CoordinatesResponseDto update(Long id, CoordinatesRequestDto requestDto, String jwtToken) {
         Coordinates existingCoordinates = repository.findById(id);
         if (existingCoordinates == null) {

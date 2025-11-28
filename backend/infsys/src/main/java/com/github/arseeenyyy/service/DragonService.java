@@ -21,7 +21,6 @@ import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.ForbiddenException;
 
@@ -49,7 +48,6 @@ public class DragonService {
     @Inject
     private JwtService jwtService;
 
-    @Transactional
     public DragonResponseDto create(DragonRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -102,7 +100,6 @@ public class DragonService {
         return DragonMapper.toResponseDto(dragon);
     }
 
-    @Transactional
     public void delete(Long id, String jwtToken) {
         Dragon dragon = dragonRepository.findById(id);
         if (dragon == null) {
@@ -152,7 +149,6 @@ public class DragonService {
         }
     }
     
-    @Transactional
     public DragonResponseDto update(Long id, DragonRequestDto requestDto, String jwtToken) {
         Dragon existingDragon = dragonRepository.findById(id);
         if (existingDragon == null) {
@@ -192,8 +188,7 @@ public class DragonService {
                 .collect(Collectors.toList());
     }
     
-    @Transactional
-    public void deleteAllByColor(String color, String jwtToken) {
+   public void deleteAllByColor(String color, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
         
@@ -215,7 +210,6 @@ public class DragonService {
         }
     }
 
-    @Transactional
     public void deleteOneByColor(String color, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);

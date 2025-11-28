@@ -13,7 +13,6 @@ import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
@@ -28,7 +27,6 @@ public class DragonCaveService {
     @Inject
     private JwtService jwtService;
     
-    @Transactional
     public DragonCaveResponseDto create(DragonCaveRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -67,7 +65,6 @@ public class DragonCaveService {
         return DragonCaveMapper.toResponseDto(cave);
     }
     
-    @Transactional
     public void delete(Long id, String jwtToken) {
         DragonCave cave = repository.findById(id);
         if (cave == null) {
@@ -79,7 +76,6 @@ public class DragonCaveService {
         repository.delete(id);
     }
     
-    @Transactional
     public DragonCaveResponseDto update(Long id, DragonCaveRequestDto requestDto, String jwtToken) {
         DragonCave existingCave = repository.findById(id);
         if (existingCave == null) {

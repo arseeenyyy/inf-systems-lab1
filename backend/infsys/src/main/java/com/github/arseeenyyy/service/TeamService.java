@@ -24,7 +24,6 @@ import com.github.arseeenyyy.repository.UserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
@@ -48,7 +47,6 @@ public class TeamService {
     @Inject
     private JwtService jwtService;
 
-    @Transactional
     public TeamCreateResponseDto createTeam(TeamCreateRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -109,7 +107,6 @@ public class TeamService {
         return team;
     }
     
-    @Transactional
     public void deleteTeam(Long id, String jwtToken) {
         Team team = teamRepository.findById(id);
         if (team == null) {
@@ -133,7 +130,6 @@ public class TeamService {
         teamRepository.delete(id);
     }
 
-    @Transactional
     public TeamToCaveResponseDto sendTeamToCave(TeamToCaveRequestDto requestDto, String jwtToken) {
         Team team = teamRepository.findById(requestDto.getTeamId());
         if (team == null) {
@@ -165,7 +161,6 @@ public class TeamService {
                 }
             }
             
-            // Перед удалением пещеры убедимся, что все драконы отвязаны от нее
             List<Dragon> remainingDragons = dragonRepository.findByCaveId(requestDto.getCaveId());
             for (Dragon dragon : remainingDragons) {
                 dragon.setCave(null);
@@ -178,7 +173,6 @@ public class TeamService {
         return new TeamToCaveResponseDto(treasures, dragonsKilled);
     }
 
-    @Transactional
     public TeamCreateResponseDto addMembersToTeam(Long teamId, List<Long> personIds, String jwtToken) {
         Team team = teamRepository.findById(teamId);
         if (team == null) {
@@ -205,7 +199,6 @@ public class TeamService {
         return new TeamCreateResponseDto(teamId, addedMembers, membersDto);
     }
     
-    @Transactional
     public TeamCreateResponseDto removeMembersFromTeam(Long teamId, List<Long> personIds, String jwtToken) {
         Team team = teamRepository.findById(teamId);
         if (team == null) {

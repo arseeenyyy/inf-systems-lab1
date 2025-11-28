@@ -3,9 +3,10 @@ package com.github.arseeenyyy.repository;
 import com.github.arseeenyyy.models.Color;
 import com.github.arseeenyyy.models.Dragon;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.util.List;
 
 @ApplicationScoped 
@@ -14,10 +15,23 @@ public class DragonRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Transactional
+    @Inject
+    private UserTransaction userTransaction;
+
     public Dragon save(Dragon dragon) {
-        entityManager.persist(dragon);
-        return dragon;
+        try {
+            userTransaction.begin();
+            entityManager.persist(dragon);
+            userTransaction.commit();
+            return dragon;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to save Dragon", e);
+        }
     } 
 
     public List<Dragon> findAll() {
@@ -29,17 +43,38 @@ public class DragonRepository {
         return entityManager.find(Dragon.class, id);
     }
 
-    @Transactional
     public void delete(Long id) {
-        Dragon dragon = entityManager.find(Dragon.class, id);
-        if (dragon != null) {
-            entityManager.remove(dragon);
+        try {
+            userTransaction.begin();
+            Dragon dragon = entityManager.find(Dragon.class, id);
+            if (dragon != null) {
+                entityManager.remove(dragon);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to delete Dragon", e);
         }
     }
 
-    @Transactional
     public Dragon update(Dragon dragon) {
-        return entityManager.merge(dragon);
+        try {
+            userTransaction.begin();
+            Dragon updated = entityManager.merge(dragon);
+            userTransaction.commit();
+            return updated;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to update Dragon", e);
+        }
     }
 
     public List<Dragon> findByColor(String color) {

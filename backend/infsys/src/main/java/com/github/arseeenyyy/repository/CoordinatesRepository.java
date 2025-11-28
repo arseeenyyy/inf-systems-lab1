@@ -2,9 +2,10 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.Coordinates;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.util.List;
 
 @ApplicationScoped 
@@ -13,10 +14,23 @@ public class CoordinatesRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    @Transactional
+    @Inject
+    private UserTransaction userTransaction;
+
     public Coordinates save(Coordinates coordinates) {
-        entityManager.persist(coordinates);
-        return coordinates;
+        try {
+            userTransaction.begin();
+            entityManager.persist(coordinates);
+            userTransaction.commit();
+            return coordinates;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to save coordinates", e);
+        }
     }
 
     public List<Coordinates> findAll() {
@@ -31,17 +45,38 @@ public class CoordinatesRepository {
         return entityManager.find(Coordinates.class, id);
     }
 
-    @Transactional
     public void delete(Long id) {
-        Coordinates coordinates = entityManager.find(Coordinates.class, id);
-        if (coordinates != null) {
-            entityManager.remove(coordinates);
+        try {
+            userTransaction.begin();
+            Coordinates coordinates = entityManager.find(Coordinates.class, id);
+            if (coordinates != null) {
+                entityManager.remove(coordinates);
+            }
+            userTransaction.commit();
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to delete coordinates", e);
         }
     }
 
-    @Transactional
     public Coordinates update(Coordinates coordinates) {
-        return entityManager.merge(coordinates);
+        try {
+            userTransaction.begin();
+            Coordinates updated = entityManager.merge(coordinates);
+            userTransaction.commit();
+            return updated;
+        } catch (Exception e) {
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
+            }
+            throw new RuntimeException("Failed to update coordinates", e);
+        }
     }
 
     public List<Coordinates> findByUserId(Long userId) {
