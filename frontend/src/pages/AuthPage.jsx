@@ -25,7 +25,7 @@ function AuthPage() {
         await apiClient.register({ 
           username: username.trim(), 
           password: password.trim(), 
-          isAdmin 
+          role: isAdmin ? "ADMIN" : "USER" 
         });
       } else {
         await apiClient.login({ 
@@ -117,7 +117,7 @@ function AuthPage() {
                 onClick={() => handleAuth(true)}
                 disabled={loading}
               >
-                {loading ? '[processing...]' : '[register]'}
+                {'[register]'}
               </button>
               <button 
                 type="button" 
@@ -126,7 +126,7 @@ function AuthPage() {
                 onClick={() => handleAuth(false)}
                 disabled={loading}
               >
-                {loading ? '[processing...]' : '[login]'}
+                {'[login]'}
               </button>
             </div>
 

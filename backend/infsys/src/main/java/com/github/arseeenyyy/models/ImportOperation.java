@@ -26,4 +26,6 @@ public class ImportOperation {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Column(name = "error_message") 
+    private String errorMessage;
 }
