@@ -1,4 +1,3 @@
-// src/api/client.js
 const BASE_URL = 'http://localhost:8080/infsys/api';
 
 class ApiClient {
@@ -232,8 +231,8 @@ class ApiClient {
     return response.json();
   }
 
-  async getImportHistory(page = 1, size = 10) {
-    return this.request(`/import/history?page=${page}&size=${size}`);
+  async getImportHistory() {
+    return this.request(`/import/history`);
   }
 }
 

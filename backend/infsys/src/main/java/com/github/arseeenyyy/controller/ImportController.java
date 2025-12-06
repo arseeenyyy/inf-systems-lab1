@@ -1,6 +1,7 @@
 package com.github.arseeenyyy.controller;
 
 import com.github.arseeenyyy.models.ImportOperation;
+import com.github.arseeenyyy.models.ImportStatus;
 import com.github.arseeenyyy.service.ImportService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -51,6 +52,10 @@ public class ImportController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", result.getStatus().toString());
         response.put("addedCount", result.getAddedCount());
+        
+        if (result.getStatus() == ImportStatus.FAILED) {
+            response.put("message", result.getErrorMessage());
+        }
         
         return Response.ok(response).build();
     }

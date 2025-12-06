@@ -10,7 +10,6 @@ import com.github.arseeenyyy.repository.DragonRepository;
 import com.github.arseeenyyy.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import java.util.List;
 
@@ -29,7 +28,6 @@ public class UserService {
     @Inject
     private JwtService jwtService;
 
-    @Transactional
     public UserResponseDto register(UserRequestDto requestDto) {
         User existingUser = userRepository.findByUsername(requestDto.getUsername());
         if (existingUser != null) {
@@ -70,7 +68,6 @@ public class UserService {
         return user;
     }
 
-    @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId);
         if (user == null) {
