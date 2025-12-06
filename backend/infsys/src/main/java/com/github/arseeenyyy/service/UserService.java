@@ -76,7 +76,7 @@ public class UserService {
 
         deleteUserData(userId);
 
-        userRepository.delete(user);
+        userRepository.delete(userId);
     }
 
     private void deleteUserData(Long userId) {

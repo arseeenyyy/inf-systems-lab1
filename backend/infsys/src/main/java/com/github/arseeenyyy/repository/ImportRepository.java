@@ -2,49 +2,35 @@ package com.github.arseeenyyy.repository;
 
 import com.github.arseeenyyy.models.ImportOperation;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.UserTransaction;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
 
 @ApplicationScoped
-public class ImportRepository {
-
-    @PersistenceContext
-    private EntityManager em;
-
-    @Inject
-    private UserTransaction userTransaction;
-
-    public ImportOperation save(ImportOperation op) {
+public class ImportRepository extends GenericRepository<ImportOperation, Long> {
+    
+    public List<ImportOperation> findByUserId(Long userId) {
+        var em = getEntityManager();
         try {
-            userTransaction.begin();
-            em.persist(op);
-            userTransaction.commit();
-            return op;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception rollbackEx) {
-                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
-            }
-            throw new RuntimeException("Failed to save ImportOperation", e);
+            TypedQuery<ImportOperation> query = em.createQuery(
+                "SELECT i FROM ImportOperation i WHERE i.userId = :userId ORDER BY i.id DESC", 
+                ImportOperation.class);
+            query.setParameter("userId", userId);
+            return query.getResultList();
+        } finally {
+            em.close();
         }
     }
-
-    public List<ImportOperation> findByUserId(Long userId) {
-        return em.createQuery(
-                "SELECT i FROM ImportOperation i WHERE i.userId = :userId ORDER BY i.id DESC",
-                ImportOperation.class)
-                .setParameter("userId", userId)
-                .getResultList();
-    }
-
+    
+    @Override
     public List<ImportOperation> findAll() {
-        return em.createQuery(
-                "SELECT i FROM ImportOperation i ORDER BY i.id DESC",
-                ImportOperation.class)
-                .getResultList();
+        var em = getEntityManager();
+        try {
+            TypedQuery<ImportOperation> query = em.createQuery(
+                "SELECT i FROM ImportOperation i ORDER BY i.id DESC", 
+                ImportOperation.class);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
 }

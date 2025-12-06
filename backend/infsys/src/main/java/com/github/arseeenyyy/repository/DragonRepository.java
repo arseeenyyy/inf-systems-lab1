@@ -3,124 +3,84 @@ package com.github.arseeenyyy.repository;
 import com.github.arseeenyyy.models.Color;
 import com.github.arseeenyyy.models.Dragon;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.UserTransaction;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
 
-@ApplicationScoped 
-public class DragonRepository {
+@ApplicationScoped
+public class DragonRepository extends GenericRepository<Dragon, Long> {
     
-    @PersistenceContext 
-    private EntityManager entityManager;
-
-    @Inject
-    private UserTransaction userTransaction;
-
-    public Dragon save(Dragon dragon) {
-        try {
-            userTransaction.begin();
-            entityManager.persist(dragon);
-            userTransaction.commit();
-            return dragon;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception rollbackEx) {
-                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
-            }
-            throw new RuntimeException("Failed to save Dragon", e);
-        }
-    } 
-
-    public List<Dragon> findAll() {
-        return entityManager.createQuery("SELECT d FROM Dragon d", Dragon.class)
-            .getResultList();
-    }
-
-    public Dragon findById(Long id) {
-        return entityManager.find(Dragon.class, id);
-    }
-
-    public void delete(Long id) {
-        try {
-            userTransaction.begin();
-            Dragon dragon = entityManager.find(Dragon.class, id);
-            if (dragon != null) {
-                entityManager.remove(dragon);
-            }
-            userTransaction.commit();
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception rollbackEx) {
-                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
-            }
-            throw new RuntimeException("Failed to delete Dragon", e);
-        }
-    }
-
-    public Dragon update(Dragon dragon) {
-        try {
-            userTransaction.begin();
-            Dragon updated = entityManager.merge(dragon);
-            userTransaction.commit();
-            return updated;
-        } catch (Exception e) {
-            try {
-                userTransaction.rollback();
-            } catch (Exception rollbackEx) {
-                throw new RuntimeException("Failed to rollback transaction", rollbackEx);
-            }
-            throw new RuntimeException("Failed to update Dragon", e);
-        }
-    }
-
     public List<Dragon> findByColor(String color) {
+        var em = getEntityManager();
         try {
             Color colorEnum = Color.valueOf(color.toUpperCase());
-            return entityManager.createQuery(
-                "SELECT d FROM Dragon d WHERE d.color = :color", Dragon.class)
-                .setParameter("color", colorEnum)
-                .getResultList();
+            TypedQuery<Dragon> query = em.createQuery(
+                "SELECT d FROM Dragon d WHERE d.color = :color", Dragon.class);
+            query.setParameter("color", colorEnum);
+            return query.getResultList();
         } catch (IllegalArgumentException e) {
             return List.of();
+        } finally {
+            em.close();
         }
     }
-
+    
     public List<Dragon> findByNameStartingWith(String substring) {
-        return entityManager.createQuery(
-            "SELECT d FROM Dragon d WHERE LOWER(d.name) LIKE LOWER(:substring)", Dragon.class)
-            .setParameter("substring", substring + "%")
-            .getResultList();
+        var em = getEntityManager();
+        try {
+            TypedQuery<Dragon> query = em.createQuery(
+                "SELECT d FROM Dragon d WHERE LOWER(d.name) LIKE LOWER(:substring)", Dragon.class);
+            query.setParameter("substring", substring + "%");
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
-
+    
     public List<Dragon> findByCaveId(Long caveId) {
-        return entityManager.createQuery(
-            "SELECT d FROM Dragon d WHERE d.cave.id = :caveId", Dragon.class)
-            .setParameter("caveId", caveId)
-            .getResultList();
+        var em = getEntityManager();
+        try {
+            TypedQuery<Dragon> query = em.createQuery(
+                "SELECT d FROM Dragon d WHERE d.cave.id = :caveId", Dragon.class);
+            query.setParameter("caveId", caveId);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
     
     public List<Dragon> findByKillerId(Long killerId) {
-        return entityManager.createQuery(
-            "SELECT d FROM Dragon d WHERE d.killer.id = :killerId", Dragon.class)
-            .setParameter("killerId", killerId)
-            .getResultList();
+        var em = getEntityManager();
+        try {
+            TypedQuery<Dragon> query = em.createQuery(
+                "SELECT d FROM Dragon d WHERE d.killer.id = :killerId", Dragon.class);
+            query.setParameter("killerId", killerId);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
     
     public List<Dragon> findByHeadId(Long headId) {
-        return entityManager.createQuery(
-            "SELECT d FROM Dragon d WHERE d.head.id = :headId", Dragon.class)
-            .setParameter("headId", headId)
-            .getResultList();
+        var em = getEntityManager();
+        try {
+            TypedQuery<Dragon> query = em.createQuery(
+                "SELECT d FROM Dragon d WHERE d.head.id = :headId", Dragon.class);
+            query.setParameter("headId", headId);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
-
+    
     public List<Dragon> findByUserId(Long userId) {
-        return entityManager.createQuery(
-            "SELECT d FROM Dragon d WHERE d.user.id = :userId", Dragon.class)
-            .setParameter("userId", userId)
-            .getResultList();
+        var em = getEntityManager();
+        try {
+            TypedQuery<Dragon> query = em.createQuery(
+                "SELECT d FROM Dragon d WHERE d.user.id = :userId", Dragon.class);
+            query.setParameter("userId", userId);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
 }
