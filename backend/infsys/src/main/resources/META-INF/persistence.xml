@@ -5,6 +5,15 @@
              version="3.0">
     <persistence-unit name="default" transaction-type="JTA">
         <jta-data-source>java:jboss/datasources/PostgresDS</jta-data-source>
+        <class>com.github.arseeenyyy.models.User</class>
+        <class>com.github.arseeenyyy.models.Coordinates</class>
+        <class>com.github.arseeenyyy.models.Dragon</class>
+        <class>com.github.arseeenyyy.models.DragonCave</class>
+        <class>com.github.arseeenyyy.models.DragonHead</class>
+        <class>com.github.arseeenyyy.models.ImportOperation</class>
+        <class>com.github.arseeenyyy.models.Location</class>
+        <class>com.github.arseeenyyy.models.Person</class>
+        <class>com.github.arseeenyyy.models.Team</class>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
