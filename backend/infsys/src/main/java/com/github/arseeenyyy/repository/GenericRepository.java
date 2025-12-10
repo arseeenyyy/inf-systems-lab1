@@ -44,9 +44,22 @@ public abstract class GenericRepository<T, ID> {
     public List<T> findAll() {
         EntityManager em = getEntityManager();
         try {
-            // Кэшируем запрос
             return em.createQuery(
                 "SELECT e FROM " + entityClass.getSimpleName() + " e", entityClass)
+                .setHint("org.hibernate.cacheable", true)
+                .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<T> findByUserId(Long userId) {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT e FROM " + entityClass.getSimpleName() + " e WHERE e.user.id = :userId", 
+                entityClass)
+                .setParameter("userId", userId)
                 .setHint("org.hibernate.cacheable", true)
                 .getResultList();
         } finally {

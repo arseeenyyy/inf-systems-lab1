@@ -8,26 +8,13 @@ import java.util.List;
 
 @ApplicationScoped
 public class DragonCaveRepository extends GenericRepository<DragonCave, Long> {
-    
-    public List<DragonCave> findByUserId(Long userId) {
-        var em = getEntityManager();
-        try {
-            TypedQuery<DragonCave> query = em.createQuery(
-                "SELECT c FROM DragonCave c WHERE c.user.id = :userId", DragonCave.class);
-            query.setParameter("userId", userId);
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
-    }
-    
+        
     @Override
     public void delete(Long id) {
         var em = getEntityManager();
         try {
             em.getTransaction().begin();
             
-            // Освобождаем драконов от этой пещеры
             TypedQuery<Dragon> dragonQuery = em.createQuery(
                 "SELECT d FROM Dragon d WHERE d.cave.id = :caveId", Dragon.class);
             dragonQuery.setParameter("caveId", id);
@@ -38,7 +25,6 @@ public class DragonCaveRepository extends GenericRepository<DragonCave, Long> {
                 em.merge(dragon);
             }
             
-            // Удаляем пещеру
             DragonCave cave = em.find(DragonCave.class, id);
             if (cave != null) {
                 em.remove(cave);

@@ -14,18 +14,7 @@ public class PersonRepository extends GenericRepository<Person, Long> {
             TypedQuery<Person> query = em.createQuery(
                 "SELECT p FROM Person p WHERE p.team.id = :teamId", Person.class);
             query.setParameter("teamId", teamId);
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
-    }
-    
-    public List<Person> findByUserId(Long userId) {
-        var em = getEntityManager();
-        try {
-            TypedQuery<Person> query = em.createQuery(
-                "SELECT p FROM Person p WHERE p.user.id = :userId", Person.class);
-            query.setParameter("userId", userId);
+            query.setHint("org.hibernate.cacheable", true);
             return query.getResultList();
         } finally {
             em.close();

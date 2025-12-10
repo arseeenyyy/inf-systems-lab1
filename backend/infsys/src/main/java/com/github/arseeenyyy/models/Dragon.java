@@ -29,6 +29,8 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor 
 @NoArgsConstructor
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Entity
 @Table(name = "dragon") 
 public class Dragon {

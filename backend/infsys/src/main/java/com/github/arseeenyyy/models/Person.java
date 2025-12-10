@@ -1,5 +1,9 @@
 package com.github.arseeenyyy.models;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,6 +26,8 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @Entity
 @Table(name = "person") 
 public class Person {

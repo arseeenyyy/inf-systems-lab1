@@ -1,5 +1,8 @@
 package com.github.arseeenyyy.models;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +13,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @Entity
 @Table(name = "import_operation")
 public class ImportOperation {
