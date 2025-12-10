@@ -20,6 +20,7 @@ public class JwtAuthFilter implements ContainerRequestFilter {
         if (path.contains("/users/register") || 
             path.contains("/users/login") || 
             path.contains("coordinates/test") || 
+            path.contains("/cache") || 
             requestContext.getMethod().equals("OPTIONS")) {
             return;
         }

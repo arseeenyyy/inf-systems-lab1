@@ -1,8 +1,6 @@
 package com.github.arseeenyyy.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.github.arseeenyyy.cache.CacheStatisticsLogging;
 import com.github.arseeenyyy.dto.coordinates.CoordinatesRequestDto;
 import com.github.arseeenyyy.dto.coordinates.CoordinatesResponseDto;
 import com.github.arseeenyyy.mapper.CoordinatesMapper;
@@ -10,12 +8,14 @@ import com.github.arseeenyyy.models.Coordinates;
 import com.github.arseeenyyy.models.User;
 import com.github.arseeenyyy.repository.CoordinatesRepository;
 import com.github.arseeenyyy.repository.UserRepository;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
+@CacheStatisticsLogging
 public class CoordinatesService {
     
     @Inject
@@ -26,7 +26,7 @@ public class CoordinatesService {
 
     @Inject
     private JwtService jwtService;
-        
+    
     public CoordinatesResponseDto create(CoordinatesRequestDto requestDto, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -41,7 +41,6 @@ public class CoordinatesService {
 
     public List<CoordinatesResponseDto> getAll(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
-        // User user = userRepository.findById(userId);
         
         List<Coordinates> coordinates;
         if (isAdmin(jwtToken)) {
