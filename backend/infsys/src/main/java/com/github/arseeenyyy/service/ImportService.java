@@ -44,9 +44,10 @@ public class ImportService {
 
     public ImportOperation processImport(InputStream fileInputStream, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId); 
         
         ImportOperation op = new ImportOperation();
-        op.setUserId(userId);
+        op.setUser(user); 
 
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -68,7 +69,7 @@ public class ImportService {
 
             int savedCount = 0;
             for (JsonNode dragonJson : dragons) {
-                createDragonWithRelations(dragonJson, userId);
+                createDragonWithRelations(dragonJson, user); 
                 savedCount++;
             }
 
@@ -86,9 +87,10 @@ public class ImportService {
 
     public ImportOperation createFailedOperation(String errorMessage, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
+        User user = userRepository.findById(userId); 
         
         ImportOperation op = new ImportOperation();
-        op.setUserId(userId);
+        op.setUser(user); 
         op.setStatus(ImportStatus.FAILED);
         op.setAddedCount(null);
         op.setErrorMessage(errorMessage);
@@ -96,8 +98,7 @@ public class ImportService {
         return importRepository.save(op);
     }
 
-    private void createDragonWithRelations(JsonNode json, Long userId) {
-        User user = userRepository.findById(userId);
+    private void createDragonWithRelations(JsonNode json, User user) {
         Coordinates coordinates = new Coordinates();
         try {
             coordinates.setX(json.get("coordinates").get("x").asDouble());
@@ -105,7 +106,7 @@ public class ImportService {
             coordinates.setUser(user);
             coordinatesRepository.save(coordinates);
         } catch (Exception e) {
-            throw new RuntimeException("coordinates error");
+            throw new RuntimeException("coordinates error: " + e.getMessage());
         }
 
         DragonCave cave = null;
@@ -116,7 +117,7 @@ public class ImportService {
                 cave.setUser(user);
                 dragonCaveRepository.save(cave);
             } catch (Exception e) {
-                throw new RuntimeException("cave error");
+                throw new RuntimeException("cave error: " + e.getMessage());
             }
         }
 
@@ -131,7 +132,7 @@ public class ImportService {
                 head.setUser(user);
                 dragonHeadRepository.save(head);
             } catch (Exception e) {
-                throw new RuntimeException("head error");
+                throw new RuntimeException("head error: " + e.getMessage());
             }
         }
 
@@ -140,7 +141,7 @@ public class ImportService {
             try {
                 killer = createPerson(json.get("killer"), user);
             } catch (Exception e) {
-                throw new RuntimeException("killer error");
+                throw new RuntimeException("killer error: " + e.getMessage());
             }
         }
 
@@ -156,16 +157,16 @@ public class ImportService {
 
             if (json.has("color") && !json.get("color").isNull()) {
                 try {
-                    dragon.setColor(Color.valueOf(json.get("color").asText()));
+                    dragon.setColor(Color.valueOf(json.get("color").asText().toUpperCase()));
                 } catch (Exception e) {
-                    throw new RuntimeException("color error");
+                    throw new RuntimeException("color error: Invalid color value");
                 }
             }
             if (json.has("character") && !json.get("character").isNull()) {
                 try {
-                    dragon.setCharacter(DragonCharacter.valueOf(json.get("character").asText()));
+                    dragon.setCharacter(DragonCharacter.valueOf(json.get("character").asText().toUpperCase()));
                 } catch (Exception e) {
-                    throw new RuntimeException("character error");
+                    throw new RuntimeException("character error: Invalid character value");
                 }
             }
             
@@ -174,7 +175,7 @@ public class ImportService {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("dragon error");
+            throw new RuntimeException("dragon error: " + e.getMessage());
         }
     }
 
@@ -185,9 +186,9 @@ public class ImportService {
             person.setName(personJson.get("name").asText());
             
             try {
-                person.setEyeColor(Color.valueOf(personJson.get("eyeColor").asText()));
+                person.setEyeColor(Color.valueOf(personJson.get("eyeColor").asText().toUpperCase()));
             } catch (Exception e) {
-                throw new RuntimeException("eye color error");
+                throw new RuntimeException("eye color error: Invalid color value");
             }
             
             person.setHeight(personJson.get("height").asInt());
@@ -195,16 +196,16 @@ public class ImportService {
 
             if (personJson.has("hairColor") && !personJson.get("hairColor").isNull()) {
                 try {
-                    person.setHairColor(Color.valueOf(personJson.get("hairColor").asText()));
+                    person.setHairColor(Color.valueOf(personJson.get("hairColor").asText().toUpperCase()));
                 } catch (Exception e) {
-                    throw new RuntimeException("hair color error");
+                    throw new RuntimeException("hair color error: Invalid color value");
                 }
             }
             if (personJson.has("nationality") && !personJson.get("nationality").isNull()) {
                 try {
-                    person.setNationality(Country.valueOf(personJson.get("nationality").asText()));
+                    person.setNationality(Country.valueOf(personJson.get("nationality").asText().toUpperCase()));
                 } catch (Exception e) {
-                    throw new RuntimeException("nationality error");
+                    throw new RuntimeException("nationality error: Invalid country value");
                 }
             }
 
@@ -213,7 +214,7 @@ public class ImportService {
                     Location location = createLocation(personJson.get("location"), user);
                     person.setLocation(location);
                 } catch (Exception e) {
-                    throw new RuntimeException("location error");
+                    throw new RuntimeException("location error: " + e.getMessage());
                 }
             }
 
@@ -222,7 +223,7 @@ public class ImportService {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("person error");
+            throw new RuntimeException("person error: " + e.getMessage());
         }
     }
 
@@ -244,7 +245,7 @@ public class ImportService {
             locationRepository.save(location);
             return location;
         } catch (Exception e) {
-            throw new RuntimeException("location data error");
+            throw new RuntimeException("location data error: " + e.getMessage());
         }
     }
 
