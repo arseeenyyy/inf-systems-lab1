@@ -2,6 +2,7 @@ package com.github.arseeenyyy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.arseeenyyy.cache.CacheStatisticsLogging;
 import com.github.arseeenyyy.models.*;
 import com.github.arseeenyyy.repository.*;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
+@CacheStatisticsLogging
 public class ImportService {
 
     @Inject

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.github.arseeenyyy.cache.CacheStatisticsLogging;
 import com.github.arseeenyyy.dto.person.PersonResponseDto;
 import com.github.arseeenyyy.dto.team.TeamCreateRequestDto;
 import com.github.arseeenyyy.dto.team.TeamCreateResponseDto;
@@ -27,6 +28,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
+@CacheStatisticsLogging
 public class TeamService {
     
     @Inject

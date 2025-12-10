@@ -3,6 +3,7 @@ package com.github.arseeenyyy.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.github.arseeenyyy.cache.CacheStatisticsLogging;
 import com.github.arseeenyyy.dto.person.PersonRequestDto;
 import com.github.arseeenyyy.dto.person.PersonResponseDto;
 import com.github.arseeenyyy.mapper.PersonMapper;
@@ -18,6 +19,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
+@CacheStatisticsLogging
 public class PersonService {
     
     @Inject

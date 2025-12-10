@@ -1,5 +1,6 @@
 package com.github.arseeenyyy.service;
 
+import com.github.arseeenyyy.cache.CacheStatisticsLogging;
 import com.github.arseeenyyy.dto.user.LoginRequestDto;
 import com.github.arseeenyyy.dto.user.UserRequestDto;
 import com.github.arseeenyyy.dto.user.UserResponseDto;
@@ -14,6 +15,7 @@ import jakarta.ws.rs.NotFoundException;
 import java.util.List;
 
 @ApplicationScoped
+@CacheStatisticsLogging
 public class UserService {
 
     @Inject

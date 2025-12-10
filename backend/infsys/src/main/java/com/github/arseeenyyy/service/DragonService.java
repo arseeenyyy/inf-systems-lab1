@@ -3,6 +3,7 @@ package com.github.arseeenyyy.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.github.arseeenyyy.cache.CacheStatisticsLogging;
 import com.github.arseeenyyy.dto.dragon.DragonRequestDto;
 import com.github.arseeenyyy.dto.dragon.DragonResponseDto;
 import com.github.arseeenyyy.mapper.DragonMapper;
@@ -25,6 +26,7 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.ForbiddenException;
 
 @ApplicationScoped
+@CacheStatisticsLogging
 public class DragonService {
     
     @Inject
