@@ -2,102 +2,168 @@ package com.github.arseeenyyy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.arseeenyyy.cache.CacheStatisticsLogging;
 import com.github.arseeenyyy.models.*;
 import com.github.arseeenyyy.repository.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class ImportService {
 
-    @Inject
-    private ImportRepository importRepository;
+    @Inject private ImportRepository importRepository;
+    @Inject private UserRepository userRepository;
+    @Inject private CoordinatesRepository coordinatesRepository;
+    @Inject private DragonCaveRepository dragonCaveRepository;
+    @Inject private DragonHeadRepository dragonHeadRepository;
+    @Inject private PersonRepository personRepository;
+    @Inject private LocationRepository locationRepository;
+    @Inject private DragonRepository dragonRepository;
+    @Inject private JwtService jwtService;
+    @Inject private MinioService minioService;
 
-    @Inject
-    private UserRepository userRepository;
-
-    @Inject
-    private CoordinatesRepository coordinatesRepository;
-
-    @Inject
-    private DragonCaveRepository dragonCaveRepository;
-
-    @Inject
-    private DragonHeadRepository dragonHeadRepository;
-
-    @Inject
-    private PersonRepository personRepository;
-
-    @Inject
-    private LocationRepository locationRepository;
-
-    @Inject
-    private DragonRepository dragonRepository;
-
-    @Inject
-    private JwtService jwtService;
-
-    public ImportOperation processImport(InputStream fileInputStream, String jwtToken) {
+    /**
+     * ДВУХФАЗНЫЙ КОММИТ:
+     * Фаза 1: Сохранить файл в MinIO (ЛЮБОЙ файл)
+     * Фаза 2: Сохранить в БД и импортировать данные
+     * Если MinIO недоступен - НЕ создаем запись в БД вообще
+     */
+    public ImportOperation processImport(InputStream fileInputStream, String fileName, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
-        User user = userRepository.findById(userId); 
+        User user = userRepository.findById(userId);
         
-        ImportOperation op = new ImportOperation();
-        op.setUser(user); 
-
+        byte[] fileData;
+        String fileKey = null;
+        
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(fileInputStream);
-
-            if (root == null || root.isEmpty()) {
-                op.setStatus(ImportStatus.FAILED);
-                op.setErrorMessage("empty file");
-                op.setAddedCount(null);
-                return importRepository.save(op);
+            // Читаем файл
+            fileData = fileInputStream.readAllBytes();
+            
+            // ========== ФАЗА 1: MinIO ==========
+            try {
+                fileKey = minioService.saveFile(
+                    new ByteArrayInputStream(fileData), 
+                    fileName, 
+                    fileData.length
+                );
+            } catch (Exception e) {
+                // MinIO недоступен - НЕ продолжаем, бросаем исключение
+                throw new RuntimeException("MinIO недоступен: " + e.getMessage());
             }
+            
+            // ========== ФАЗА 2: БД ==========
+            ImportOperation operation = new ImportOperation();
+            operation.setUser(user);
+            operation.setFileName(fileName);
+            operation.setFileKey(fileKey);  // Всегда есть, если дошли сюда
+            
+            try {
+                // Пробуем импортировать
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root;
+                
+                try {
+                    root = mapper.readTree(new String(fileData));
+                } catch (Exception e) {
+                    // Невалидный JSON - всё равно сохраняем операцию
+                    operation.setStatus(ImportStatus.FAILED);
+                    operation.setErrorMessage("Невалидный JSON: " + e.getMessage());
+                    operation.setAddedCount(0);
+                    return importRepository.save(operation);
+                }
+                
+                if (root == null || root.isEmpty()) {
+                    operation.setStatus(ImportStatus.FAILED);
+                    operation.setErrorMessage("empty file");
+                    operation.setAddedCount(0);
+                    return importRepository.save(operation);
+                }
 
-            List<JsonNode> dragons = new ArrayList<>();
-            if (root.isArray()) {
-                for (JsonNode obj : root) dragons.add(obj);
-            } else {
-                dragons.add(root);
+                List<JsonNode> dragons = new ArrayList<>();
+                if (root.isArray()) {
+                    for (JsonNode obj : root) dragons.add(obj);
+                } else {
+                    dragons.add(root);
+                }
+
+                int savedCount = 0;
+                for (JsonNode dragonJson : dragons) {
+                    createDragonWithRelations(dragonJson, user);
+                    savedCount++;
+                }
+
+                operation.setStatus(ImportStatus.SUCCESS);
+                operation.setAddedCount(savedCount);
+                
+            } catch (Exception e) {
+                // Ошибка при импорте - всё равно сохраняем операцию (файл в MinIO)
+                operation.setStatus(ImportStatus.FAILED);
+                operation.setErrorMessage(e.getMessage());
+                operation.setAddedCount(0);
             }
-
-            int savedCount = 0;
-            for (JsonNode dragonJson : dragons) {
-                createDragonWithRelations(dragonJson, user); 
-                savedCount++;
-            }
-
-            op.setStatus(ImportStatus.SUCCESS);
-            op.setAddedCount(savedCount); 
-
+            
+            // Сохраняем операцию в БД
+            return importRepository.save(operation);
+            
+        } catch (RuntimeException e) {
+            // MinIO недоступен - перебрасываем исключение, запись в БД НЕ создается
+            throw e;
         } catch (Exception e) {
-            op.setStatus(ImportStatus.FAILED);
-            op.setAddedCount(null);
-            op.setErrorMessage(e.getMessage());
+            // Другая ошибка
+            throw new RuntimeException("Ошибка импорта: " + e.getMessage());
         }
-
-        return importRepository.save(op);
     }
 
     public ImportOperation createFailedOperation(String errorMessage, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
-        User user = userRepository.findById(userId); 
+        User user = userRepository.findById(userId);
         
         ImportOperation op = new ImportOperation();
-        op.setUser(user); 
+        op.setUser(user);
         op.setStatus(ImportStatus.FAILED);
-        op.setAddedCount(null);
         op.setErrorMessage(errorMessage);
+        op.setAddedCount(0);
+        op.setFileKey(null);
         
         return importRepository.save(op);
     }
 
+    public InputStream downloadImportFile(Long importId, String jwtToken) throws Exception {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        String role = jwtService.getRoleFromToken(jwtToken);
+        
+        ImportOperation operation = importRepository.findById(importId);
+        
+        if (operation == null) {
+            throw new RuntimeException("Import operation not found");
+        }
+        
+        if (!operation.getUser().getId().equals(userId) && !"ADMIN".equals(role)) {
+            throw new RuntimeException("Access denied");
+        }
+        
+        if (operation.getFileKey() == null) {
+            throw new RuntimeException("File not found for this operation");
+        }
+        
+        return minioService.getFile(operation.getFileKey());
+    }
+
+    public List<ImportOperation> getImportHistory(String jwtToken) {
+        Long userId = jwtService.getUserIdFromToken(jwtToken);
+        String role = jwtService.getRoleFromToken(jwtToken);
+        
+        if ("ADMIN".equals(role)) {
+            return importRepository.findAll();
+        } else {
+            return importRepository.findByUserId(userId);
+        }
+    }
+
+    // Остальные методы без изменений...
     private void createDragonWithRelations(JsonNode json, User user) {
         Coordinates coordinates = new Coordinates();
         try {
@@ -246,17 +312,6 @@ public class ImportService {
             return location;
         } catch (Exception e) {
             throw new RuntimeException("location data error: " + e.getMessage());
-        }
-    }
-
-    public List<ImportOperation> getImportHistory(String jwtToken) {
-        Long userId = jwtService.getUserIdFromToken(jwtToken);
-        String role = jwtService.getRoleFromToken(jwtToken);
-        
-        if ("ADMIN".equals(role)) {
-            return importRepository.findAll();
-        } else {
-            return importRepository.findByUserId(userId);
         }
     }
 }

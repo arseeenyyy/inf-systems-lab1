@@ -1,5 +1,12 @@
 package com.github.arseeenyyy.dto.dragon;
 
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.github.arseeenyyy.dto.coordinates.CoordinatesResponseDto;
 import com.github.arseeenyyy.dto.dragonCave.DragonCaveResponseDto;
 import com.github.arseeenyyy.dto.dragonHead.DragonHeadResponseDto;
@@ -18,7 +25,10 @@ public class DragonResponseDto {
     private Long id;
     private String name;
     private CoordinatesResponseDto coordinates;
-    private java.time.LocalDate creationDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonSerialize(using = LocalDateSerializer.class)
+    private LocalDate creationDate;
     private DragonCaveResponseDto cave;
     private PersonResponseDto killer;
     private Integer age;

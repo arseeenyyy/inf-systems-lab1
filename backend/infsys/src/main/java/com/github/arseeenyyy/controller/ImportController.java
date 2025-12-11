@@ -1,7 +1,6 @@
 package com.github.arseeenyyy.controller;
 
 import com.github.arseeenyyy.models.ImportOperation;
-import com.github.arseeenyyy.models.ImportStatus;
 import com.github.arseeenyyy.service.ImportService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -29,8 +28,6 @@ public class ImportController {
     public Response uploadFile(@HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader,
                               MultipartFormDataInput input) {
         
-        ImportOperation result;
-        
         try {
             String jwtToken = extractToken(authHeader);
             
@@ -38,26 +35,28 @@ public class ImportController {
             List<InputPart> fileParts = formData.get("file");
             
             if (fileParts == null || fileParts.isEmpty()) {
-                result = importService.createFailedOperation("File not provided", jwtToken);
-            } else {
-                InputPart filePart = fileParts.get(0);
-                InputStream fileStream = filePart.getBody(InputStream.class, null);
-                result = importService.processImport(fileStream, jwtToken);
+                ImportOperation result = importService.createFailedOperation("File not provided", jwtToken);
+                return Response.ok(createResponse(result)).build();
             }
             
+            InputPart filePart = fileParts.get(0);
+            InputStream fileStream = filePart.getBody(InputStream.class, null);
+            String fileName = getFileName(filePart);
+            
+            // ДВУХФАЗНЫЙ КОММИТ
+            ImportOperation result = importService.processImport(fileStream, fileName, jwtToken);
+            return Response.ok(createResponse(result)).build();
+            
+        } catch (RuntimeException e) {
+            // MinIO недоступен - возвращаем 500, запись в БД НЕ создана
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(Map.of("error", "MinIO недоступен: " + e.getMessage()))
+                .build();
         } catch (Exception e) {
-            result = importService.createFailedOperation(e.getMessage(), authHeader);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(Map.of("error", e.getMessage()))
+                .build();
         }
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", result.getStatus().toString());
-        response.put("addedCount", result.getAddedCount());
-        
-        if (result.getStatus() == ImportStatus.FAILED) {
-            response.put("message", result.getErrorMessage());
-        }
-        
-        return Response.ok(response).build();
     }
 
     @GET
@@ -68,10 +67,46 @@ public class ImportController {
             List<ImportOperation> history = importService.getImportHistory(jwtToken);
             return Response.ok(history).build();
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return Response.status(Response.Status.BAD_REQUEST).entity(error).build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(Map.of("error", e.getMessage()))
+                .build();
         }
+    }
+    
+    @GET
+    @Path("/{id}/download")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response downloadFile(@PathParam("id") Long importId,
+                                @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        
+        try {
+            String jwtToken = extractToken(authHeader);
+            InputStream fileStream = importService.downloadImportFile(importId, jwtToken);
+            
+            return Response.ok(fileStream)
+                .header("Content-Disposition", "attachment; filename=\"import_" + importId + "\"")
+                .header("Content-Type", "application/octet-stream")
+                .build();
+                
+        } catch (Exception e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(Map.of("error", e.getMessage()))
+                .build();
+        }
+    }
+
+    private Map<String, Object> createResponse(ImportOperation result) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", result.getId());
+        response.put("status", result.getStatus().toString());
+        response.put("addedCount", result.getAddedCount());
+        response.put("hasFile", result.getFileKey() != null);
+        
+        if (result.getErrorMessage() != null) {
+            response.put("error", result.getErrorMessage());
+        }
+        
+        return response;
     }
 
     private String extractToken(String authHeader) {
@@ -79,5 +114,15 @@ public class ImportController {
             throw new RuntimeException("Invalid token");
         }
         return authHeader.substring("Bearer ".length()).trim();
+    }
+    
+    private String getFileName(InputPart part) {
+        String header = part.getHeaders().getFirst("Content-Disposition");
+        for (String token : header.split(";")) {
+            if (token.trim().startsWith("filename")) {
+                return token.split("=")[1].trim().replace("\"", "");
+            }
+        }
+        return "file";
     }
 }
