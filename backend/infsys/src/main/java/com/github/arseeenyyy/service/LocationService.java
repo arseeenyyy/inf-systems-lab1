@@ -17,7 +17,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class LocationService {
     
     @Inject
@@ -40,7 +39,8 @@ public class LocationService {
         Location savedLocation = locationRepository.save(location);
         return LocationMapper.toResponseDto(savedLocation);
     }
-    
+
+    @CacheStatisticsLogging
     public List<LocationResponseDto> getAllLocations(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         
@@ -55,7 +55,8 @@ public class LocationService {
                 .map(LocationMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
-    
+
+    @CacheStatisticsLogging
     public LocationResponseDto getLocationById(Long id, String jwtToken) {
         Location location = locationRepository.findById(id);
         if (location == null) {

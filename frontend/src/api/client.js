@@ -234,6 +234,36 @@ class ApiClient {
   async getImportHistory() {
     return this.request(`/import/history`);
   }
+  async getCacheStatus() {
+    return this.request('/cache/statistics/status');
+  }
+
+  async enableCacheStatistics() {
+    return this.request('/cache/statistics/enable', {
+      method: 'POST'
+    });
+  }
+  async downloadImportFile(importId) {
+    const response = await fetch(`${BASE_URL}/import/${importId}/download`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.token}`
+      }
+    });
+
+    if (!response.ok) {
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          throw new Error(errorData.error);
+        }
+      } catch (e) {
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.blob();
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -28,7 +28,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class TeamService {
     
     @Inject
@@ -84,6 +83,7 @@ public class TeamService {
         return new TeamCreateResponseDto(savedTeam.getId(), addedMembers, membersDto);
     }
 
+    @CacheStatisticsLogging
     public List<TeamDto> getAllTeams(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -99,6 +99,7 @@ public class TeamService {
         }
     }
     
+    @CacheStatisticsLogging
     public Team getTeamById(Long id, String jwtToken) {
         Team team = teamRepository.findById(id);
         if (team == null) {

@@ -75,7 +75,7 @@ public class ImportController {
     
     @GET
     @Path("/{id}/download")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_JSON})
     public Response downloadFile(@PathParam("id") Long importId,
                                 @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         
@@ -86,11 +86,31 @@ public class ImportController {
             return Response.ok(fileStream)
                 .header("Content-Disposition", "attachment; filename=\"import_" + importId + "\"")
                 .header("Content-Type", "application/octet-stream")
+                .type(MediaType.APPLICATION_OCTET_STREAM)
                 .build();
                 
+        } catch (RuntimeException e) {
+            String errorMessage = e.getMessage();
+            String shortMessage;
+            
+            if (errorMessage != null && errorMessage.contains("MinIO")) {
+                shortMessage = "MinIO storage is currently unavailable";
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity(Map.of("error", shortMessage))
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+            } else {
+                shortMessage = errorMessage != null ? errorMessage : "File not found";
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", shortMessage))
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+            }
+                
         } catch (Exception e) {
-            return Response.status(Response.Status.NOT_FOUND)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(Map.of("error", e.getMessage()))
+                .type(MediaType.APPLICATION_JSON)
                 .build();
         }
     }

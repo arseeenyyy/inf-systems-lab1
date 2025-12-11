@@ -26,7 +26,6 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.ForbiddenException;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class DragonService {
     
     @Inject
@@ -70,7 +69,8 @@ public class DragonService {
         Dragon savedDragon = dragonRepository.save(dragon);
         return DragonMapper.toResponseDto(savedDragon);
     }
-    
+
+    @CacheStatisticsLogging
     public List<DragonResponseDto> getAll(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -91,6 +91,7 @@ public class DragonService {
                 .collect(Collectors.toList());
     }
     
+    @CacheStatisticsLogging
     public DragonResponseDto getById(Long id, String jwtToken) {
         Dragon dragon = dragonRepository.findById(id);
         if (dragon == null) {

@@ -19,7 +19,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class PersonService {
     
     @Inject
@@ -49,6 +48,7 @@ public class PersonService {
         return PersonMapper.toResponseDto(savedPerson);
     }
     
+    @CacheStatisticsLogging
     public List<PersonResponseDto> getAll(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         
@@ -64,6 +64,7 @@ public class PersonService {
                 .collect(Collectors.toList());
     }
     
+    @CacheStatisticsLogging
     public PersonResponseDto getById(Long id, String jwtToken) {
         Person person = personRepository.findById(id); 
         if (person == null) {

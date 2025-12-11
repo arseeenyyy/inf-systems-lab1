@@ -17,7 +17,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class DragonHeadService {
     
     @Inject
@@ -40,7 +39,8 @@ public class DragonHeadService {
         DragonHead savedHead = repository.save(head);
         return DragonHeadMapper.toResponseDto(savedHead);
     }
-    
+
+    @CacheStatisticsLogging
     public List<DragonHeadResponseDto> getAll(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         
@@ -56,6 +56,7 @@ public class DragonHeadService {
                 .collect(Collectors.toList());
     }
     
+    @CacheStatisticsLogging
     public DragonHeadResponseDto getById(Long id, String jwtToken) {
         DragonHead head = repository.findById(id);
         if (head == null) {

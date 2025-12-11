@@ -4,15 +4,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.enterprise.context.ApplicationScoped;
-
 import javax.crypto.SecretKey;
-
-import com.github.arseeenyyy.cache.CacheStatisticsLogging;
-
 import java.util.Date;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class JwtService {
 
     private final SecretKey key = Jwts.SIG.HS256.key().build();

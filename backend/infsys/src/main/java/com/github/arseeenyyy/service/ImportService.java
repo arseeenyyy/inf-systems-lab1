@@ -25,12 +25,6 @@ public class ImportService {
     @Inject private JwtService jwtService;
     @Inject private MinioService minioService;
 
-    /**
-     * ДВУХФАЗНЫЙ КОММИТ:
-     * Фаза 1: Сохранить файл в MinIO (ЛЮБОЙ файл)
-     * Фаза 2: Сохранить в БД и импортировать данные
-     * Если MinIO недоступен - НЕ создаем запись в БД вообще
-     */
     public ImportOperation processImport(InputStream fileInputStream, String fileName, String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         User user = userRepository.findById(userId);
@@ -39,10 +33,8 @@ public class ImportService {
         String fileKey = null;
         
         try {
-            // Читаем файл
             fileData = fileInputStream.readAllBytes();
             
-            // ========== ФАЗА 1: MinIO ==========
             try {
                 fileKey = minioService.saveFile(
                     new ByteArrayInputStream(fileData), 
@@ -50,25 +42,21 @@ public class ImportService {
                     fileData.length
                 );
             } catch (Exception e) {
-                // MinIO недоступен - НЕ продолжаем, бросаем исключение
-                throw new RuntimeException("MinIO недоступен: " + e.getMessage());
+                throw new RuntimeException("MinIO unable: " + e.getMessage());
             }
             
-            // ========== ФАЗА 2: БД ==========
             ImportOperation operation = new ImportOperation();
             operation.setUser(user);
             operation.setFileName(fileName);
-            operation.setFileKey(fileKey);  // Всегда есть, если дошли сюда
+            operation.setFileKey(fileKey);  
             
             try {
-                // Пробуем импортировать
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode root;
                 
                 try {
                     root = mapper.readTree(new String(fileData));
                 } catch (Exception e) {
-                    // Невалидный JSON - всё равно сохраняем операцию
                     operation.setStatus(ImportStatus.FAILED);
                     operation.setErrorMessage("Невалидный JSON: " + e.getMessage());
                     operation.setAddedCount(0);
@@ -99,20 +87,16 @@ public class ImportService {
                 operation.setAddedCount(savedCount);
                 
             } catch (Exception e) {
-                // Ошибка при импорте - всё равно сохраняем операцию (файл в MinIO)
                 operation.setStatus(ImportStatus.FAILED);
                 operation.setErrorMessage(e.getMessage());
                 operation.setAddedCount(0);
             }
             
-            // Сохраняем операцию в БД
             return importRepository.save(operation);
             
         } catch (RuntimeException e) {
-            // MinIO недоступен - перебрасываем исключение, запись в БД НЕ создается
             throw e;
         } catch (Exception e) {
-            // Другая ошибка
             throw new RuntimeException("Ошибка импорта: " + e.getMessage());
         }
     }
@@ -149,7 +133,11 @@ public class ImportService {
             throw new RuntimeException("File not found for this operation");
         }
         
-        return minioService.getFile(operation.getFileKey());
+        try {
+            return minioService.getFile(operation.getFileKey());
+        } catch (Exception e) {
+            throw new RuntimeException("MinIO storage unavailable: " + e.getMessage());
+        }
     }
 
     public List<ImportOperation> getImportHistory(String jwtToken) {
@@ -163,7 +151,6 @@ public class ImportService {
         }
     }
 
-    // Остальные методы без изменений...
     private void createDragonWithRelations(JsonNode json, User user) {
         Coordinates coordinates = new Coordinates();
         try {

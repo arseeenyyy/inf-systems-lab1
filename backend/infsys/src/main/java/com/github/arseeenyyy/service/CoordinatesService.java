@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class CoordinatesService {
     
     @Inject
@@ -39,6 +38,7 @@ public class CoordinatesService {
         return CoordinatesMapper.toResponseDto(savedCoordinates);
     }
 
+    @CacheStatisticsLogging
     public List<CoordinatesResponseDto> getAll(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         
@@ -53,7 +53,8 @@ public class CoordinatesService {
                 .map(CoordinatesMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
-
+    
+    @CacheStatisticsLogging
     public CoordinatesResponseDto getById(Long id, String jwtToken) {
         Coordinates coordinates = repository.findById(id); 
         if (coordinates == null) {

@@ -15,7 +15,6 @@ import jakarta.ws.rs.NotFoundException;
 import java.util.List;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class UserService {
 
     @Inject
@@ -62,6 +61,7 @@ public class UserService {
         return new UserResponseDto(user.getId(), jwt);
     }
 
+    @CacheStatisticsLogging
     public User getById(Long id) {
         User user = userRepository.findById(id);
         if (user == null) {

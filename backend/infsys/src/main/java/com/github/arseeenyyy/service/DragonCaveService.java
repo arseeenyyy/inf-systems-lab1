@@ -17,7 +17,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
-@CacheStatisticsLogging
 public class DragonCaveService {
     
     @Inject
@@ -40,7 +39,8 @@ public class DragonCaveService {
         DragonCave savedCave = repository.save(cave);
         return DragonCaveMapper.toResponseDto(savedCave);
     }
-    
+
+    @CacheStatisticsLogging
     public List<DragonCaveResponseDto> getAll(String jwtToken) {
         Long userId = jwtService.getUserIdFromToken(jwtToken);
         
@@ -56,6 +56,7 @@ public class DragonCaveService {
                 .collect(Collectors.toList());
     }
     
+    @CacheStatisticsLogging
     public DragonCaveResponseDto getById(Long id, String jwtToken) {
         DragonCave cave = repository.findById(id); 
         if (cave == null) {

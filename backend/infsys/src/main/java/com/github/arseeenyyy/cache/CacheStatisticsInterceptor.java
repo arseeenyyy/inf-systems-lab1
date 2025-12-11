@@ -11,6 +11,7 @@ import com.github.arseeenyyy.config.DatabaseManager;
 
 import java.util.logging.Logger;
 
+
 @Interceptor
 @CacheStatisticsLogging
 public class CacheStatisticsInterceptor {
@@ -19,6 +20,11 @@ public class CacheStatisticsInterceptor {
     
     @Inject
     private CacheStatisticsManager statisticsManager;
+    
+    private long totalL2Hits = 0;
+    private long totalL2Misses = 0;
+    private long totalQueryHits = 0;
+    private long totalQueryMisses = 0;
     
     @AroundInvoke
     public Object logCacheStatistics(InvocationContext context) throws Exception {
@@ -47,11 +53,21 @@ public class CacheStatisticsInterceptor {
             
             Statistics stats = session.getSessionFactory().getStatistics();
             
+            long currentL2Hits = stats.getSecondLevelCacheHitCount();
+            long currentL2Misses = stats.getSecondLevelCacheMissCount();
+            long currentQueryHits = stats.getQueryCacheHitCount();
+            long currentQueryMisses = stats.getQueryCacheMissCount();
+            
+            totalL2Hits += currentL2Hits;
+            totalL2Misses += currentL2Misses;
+            totalQueryHits += currentQueryHits;
+            totalQueryMisses += currentQueryMisses;
+            
             logger.info("=== Cache Stats for method: " + methodName + " ===");
-            logger.info("L2 Cache Hits: " + stats.getSecondLevelCacheHitCount());
-            logger.info("L2 Cache Misses: " + stats.getSecondLevelCacheMissCount());
-            logger.info("Query Cache Hits: " + stats.getQueryCacheHitCount());
-            logger.info("Query Cache Misses: " + stats.getQueryCacheMissCount());
+            logger.info("L2 Cache Hits: " + totalL2Hits);
+            logger.info("L2 Cache Misses: " + totalL2Misses);
+            logger.info("Query Cache Hits: " + totalQueryHits);
+            logger.info("Query Cache Misses: " + totalQueryMisses);
             logger.info("Execution time: " + executionTime + " ms");
             logger.info("==============================================");
             
